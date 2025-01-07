@@ -1,0 +1,152 @@
+1. Overview
+
+Product Name: ChattyG
+Purpose: A Slack-like collaborative messaging platform that will later incorporate advanced AI features (e.g., intelligent suggestions, summarizations, etc.).
+Scope (MVP): Focus solely on the core chat functionalities essential to a team messaging platform, as listed:
+
+Authentication
+Real-time Messaging
+Channel/DM Organization
+File Sharing & Search
+User Presence & Status
+Thread Support
+Emoji Reactions
+2. Objectives & Goals
+
+Immediate Goal (MVP):
+Provide a stable and intuitive platform for team communication.
+Establish the foundation (architecture, database, front-end structure) for future AI expansions.
+Long-Term Goal:
+Integrate AI-assisted messaging features such as message summarization, smart suggestions, and automated responses.
+3. Functional Requirements
+
+User Authentication
+Must support user registration and secure login.
+Roles/permissions (e.g., admin privileges) can be minimal at MVP stage.
+Implement basic password resets (optionally via email link or code).
+Real-time Messaging
+Users must be able to send and receive messages instantly.
+Maintain an active connection (e.g., WebSocket, Socket.io, or similar) for push updates.
+Channel & Direct Message (DM) Organization
+Users can create public or private channels.
+Direct 1:1 messaging with other users.
+Basic channel user management (invite or remove members).
+File Sharing & Search
+Allow users to upload attachments (images, documents, etc.).
+A rudimentary file search functionality (keyword-based or metadata-based) within channels.
+User Presence & Status
+Indicate who is online, away, or offline.
+Option for users to set a custom status message.
+Thread Support
+Users can start threaded conversations tied to a specific message.
+Threaded responses stay contextually linked but are discoverable.
+Emoji Reactions
+Standard emoji reaction support for messages.
+Optionally allow custom emojis if time permits.
+4. Non-Functional Requirements
+
+Performance
+The app should handle real-time updates for multiple concurrent channels with minimal lag.
+Low latency for sending and receiving messages is a priority.
+Scalability
+The MVP should employ a scalable architecture: decoupled services or a monolithic approach that can be modularized later.
+Database schema should be flexible enough to accommodate new AI-related data fields in the future.
+Security
+Protect user data with encryption in transit (HTTPS/WSS).
+Store passwords securely with hashing (e.g., bcrypt).
+Maintainability
+Code should be well-documented.
+Project structure to easily add AI microservices or modules later.
+5. Risks & Assumptions
+
+Risk: Real-time messaging can become complex under high loads.
+Mitigation: Use well-established libraries like Socket.io or Pusher.
+Risk: File storage costs can increase with scale.
+Mitigation: Consider cloud storage (e.g., AWS S3) or limit file sizes initially.
+Assumption: MVP user base will be small, so a single-server setup might suffice in the beginning.
+Assumption: Future AI features will require a separate service or integration with cloud-based APIs.
+6. Success Metrics (MVP)
+
+User adoption & engagement: Number of messages sent, channels created, files shared, etc.
+System reliability: Low error rates and minimal downtime.
+Performance: Quick message delivery (real-time or near real-time).
+User satisfaction: Basic usability tests and user feedback (e.g., Net Promoter Score for MVP).
+7. Development Workflow
+
+Below is a simple, logical order to build out the MVP. Each step can be tackled in small, iterative sprints, ensuring you always have a functional product at each stage.
+
+Phase 1: Infrastructure & Setup
+Project Architecture & Tech Stack
+Decide on front-end framework (e.g., React, Vue) and back-end (e.g., Node.js, Python).
+Set up a basic monorepo or separate repos for front-end and back-end.
+Initialize a database (e.g., PostgreSQL, MongoDB).
+Database Schema
+Define schema for Users, Channels, Messages, Threads, Files (or attachments).
+Ensure each entity can be extended later for AI-related data fields.
+Basic Routing & Server Setup
+Create endpoints for user-related actions (signup, login).
+Set up a simple front-end router for navigation.
+Phase 2: User Authentication
+Signup & Login
+Implement secure registration and login endpoints (JWT or session-based).
+Password Management
+(Optional MVP) Implement a basic flow for password reset.
+Session Handling
+Protect routes that require a logged-in user.
+Use middleware for authorization checks if needed.
+Phase 3: Real-time Messaging Core
+WebSocket/Socket.io Integration
+Establish a connection on user login.
+Listen for incoming messages and broadcast them to relevant channels/DMs.
+Message Sending & Receiving
+Create an endpoint to post new messages.
+Render the messages live in the chat window.
+Basic UI for Channels & DMs
+Show a channel list and a direct message list on the sidebar.
+Click on a channel or DM to open the chat window.
+Phase 4: Channel & DM Organization
+Channel Creation & Management
+Create new channels (public/private).
+Add or remove channel members.
+Direct Messaging
+Implement 1:1 messaging flow.
+Possibly expand to group DMs if time allows.
+Channel Navigation UI
+Show unread message indicators.
+Maintain channel order or prioritization.
+Phase 5: File Sharing & Search
+File Upload
+Integrate a simple file upload component (limit file types/sizes for MVP).
+Store files locally or in a cloud storage bucket (e.g., AWS S3).
+File Download & Preview
+Enable users to view/download shared files.
+Search
+Implement a simple keyword-based search across messages and file names (use database full-text search or an external service if needed).
+Phase 6: User Presence & Status
+Online/Away/Offline Indicators
+Update user presence when they connect/disconnect from the WebSocket.
+Custom Status
+Allow users to set a custom status (e.g., “On Vacation”, “Busy”).
+UI Indicators
+Display presence/status icons next to usernames in channels and direct messages.
+Phase 7: Thread Support
+Thread Model
+Extend Messages schema to link to a parent message (for threading).
+Thread UI
+Users can open a thread panel for any given message.
+Threaded Conversations
+Keep the main channel clean by housing related replies in a sub-view.
+Phase 8: Emoji Reactions
+Emoji Picker
+Integrate a simple emoji picker library.
+Reaction Storing
+Extend your Messages or create a Reactions table to store which user reacted with which emoji.
+Reaction Display
+Show the top emojis under each message.
+Aggregate multiple reactions of the same type.
+8. Next Steps & Future Iterations
+
+AI Features: After the MVP is stable, add AI-based functionalities like smart message suggestions, channel summarizations, or Q&A chatbots.
+Customization & Integrations: Allow third-party integrations (e.g., Google Drive, GitHub) as advanced features.
+Analytics & Reporting: Provide admins with usage reports and analytics dashboards.
+Mobile App: Expand to mobile devices or optimize the web version for smaller screens.
