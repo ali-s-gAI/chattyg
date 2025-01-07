@@ -25,7 +25,7 @@ export default function Home() {
       router.push('/chat')
     } catch (error) {
       console.error('Error:', error)
-      alert(error.message)
+      alert(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
