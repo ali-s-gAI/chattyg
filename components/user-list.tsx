@@ -67,7 +67,8 @@ export function UserList({ channelId }: UserListProps) {
         setUsers(formattedUsers)
         setError(null)
 
-      } catch (error) {
+      } catch (err) {
+        const error = err as Error
         console.error('Detailed error:', error)
         setError(`Error: ${error.message || 'Unknown error'}`)
       }
