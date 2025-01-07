@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
@@ -7,11 +7,12 @@ import { X } from 'lucide-react'
 type CreateChannelModalProps = {
   isOpen: boolean
   onClose: () => void
+  onSuccess: () => void
 }
 
 const supabase = createClient()
 
-export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps) {
+export function CreateChannelModal({ isOpen, onClose, onSuccess }: CreateChannelModalProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
@@ -53,6 +54,7 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
       setName('')
       setDescription('')
       setIsPrivate(false)
+      onSuccess()
       onClose()
     } catch (error) {
       console.error('Error:', error)

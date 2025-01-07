@@ -22,7 +22,9 @@ export function TopBar({ channel }: TopBarProps) {
 
   return (
     <div className="flex items-center justify-between p-4 border-b">
-      <h2 className="text-xl font-semibold">#general</h2>
+      <h2 className="text-xl font-semibold">
+        #{channel?.name || 'Select a channel'}
+      </h2>
       <form onSubmit={handleSearch} className="relative">
         <input
           type="search"

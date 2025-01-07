@@ -6,6 +6,7 @@ import { MessageArea } from '@/components/message-area'
 import { useEffect, useState } from 'react'
 import { createClient } from '../../utils/supabase/client'
 import { CreateChannelModal } from '@/components/create-channel-modal'
+import { UserList } from '@/components/user-list'
 
 const supabase = createClient()
 
@@ -75,9 +76,7 @@ const ChatPage: React.FC = () => {
 
       {/* Users list */}
       <div className="w-[240px] flex-shrink-0 bg-[#282B30] text-gray-300 border-r border-gray-700">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Users</h2>
-        </div>
+        <UserList channelId={currentChannelId} />
       </div>
 
       {/* Main chat area */}

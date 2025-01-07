@@ -4,7 +4,7 @@ export default function ChatLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="h-screen w-full">
+    <div className="h-screen w-screen">
       {children}
     </div>
   )

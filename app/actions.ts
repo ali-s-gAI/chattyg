@@ -6,29 +6,25 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export async function signUpAction(formData: FormData) {
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
-
-  if (!email || !password) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Email and password are required",
-    );
-  }
-
+  'use server'
+  
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  const displayName = formData.get('display_name') as string
+  
+  const supabase = await createClient()
+  
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-    },
-  });
+      data: {
+        display_name: displayName
+      }
+    }
+  })
 
   if (error) {
-    console.error(error.code + " " + error.message);
     return redirect('/auth-pages/sign-up?error=' + error.message)
   }
 
