@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export const signUpAction = async (formData: FormData) => {
+export async function signUpAction(formData: FormData) {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const supabase = await createClient();
@@ -29,32 +29,32 @@ export const signUpAction = async (formData: FormData) => {
 
   if (error) {
     console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
-  } else {
-    return encodedRedirect(
-      "success",
-      "/sign-up",
-      "Thanks for signing up!",
-    );
+    return redirect('/auth-pages/sign-up?error=' + error.message)
   }
-};
 
-export const signInAction = async (formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const supabase = await createClient();
+  return redirect('/auth-pages/sign-in?message=Account created successfully! Please sign in.')
+}
 
+export async function signInAction(formData: FormData) {
+  'use server'
+  
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  
+  const supabase = await createClient()
+  
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
-  });
+  })
 
   if (error) {
-    return encodedRedirect("error", "/sign-in", error.message);
+    return redirect('/auth-pages/sign-in?error=Invalid credentials. Please review and try again. If you don\'t have an account, please sign up')
   }
 
-  return redirect("/protected");
-};
+  // On successful sign in, redirect to chat
+  return redirect('/chat')
+}
 
 export const forgotPasswordAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();

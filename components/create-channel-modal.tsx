@@ -1,7 +1,8 @@
-'use client'
+ 'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { X } from 'lucide-react'
 
 type CreateChannelModalProps = {
   isOpen: boolean
@@ -14,7 +15,6 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
-  const [password, setPassword] = useState('')
 
   if (!isOpen) return null
 
@@ -22,11 +22,8 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
     e.preventDefault()
 
     try {
-      // Get the current user's ID
       const { data: { session } } = await supabase.auth.getSession()
-      if (!session) {
-        throw new Error('Not authenticated')
-      }
+      if (!session) throw new Error('Not authenticated')
 
       // Create the channel
       const { data: channel, error: channelError } = await supabase
@@ -35,7 +32,6 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
           name,
           description,
           is_private: isPrivate,
-          password: isPrivate ? password : null,
           created_by: session.user.id
         }])
         .select()
@@ -43,97 +39,100 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
 
       if (channelError) throw channelError
 
-      // Add the creator as a channel member
+      // Add creator as channel admin
       const { error: memberError } = await supabase
         .from('channel_members')
         .insert([{
           channel_id: channel.id,
           user_id: session.user.id,
-          role: 'admin'  // The creator is an admin
+          role: 'admin'
         }])
 
       if (memberError) throw memberError
 
-      // Reset form and close modal
       setName('')
       setDescription('')
       setIsPrivate(false)
-      setPassword('')
       onClose()
     } catch (error) {
-      console.error('Error creating channel:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create channel')
+      console.error('Error:', error)
+      alert('Failed to create channel')
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-96">
-        <h2 className="text-xl font-bold mb-4">Create New Channel</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-md w-[440px] shadow-lg">
+        <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
+          <h2 className="text-lg font-semibold dark:text-white">Create Channel</h2>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Channel Name
+            <label className="block text-sm font-medium mb-1 dark:text-white">
+              CHANNEL NAME
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="new-channel"
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-md 
+                       border border-gray-300 dark:border-gray-600 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Description
+            <label className="block text-sm font-medium mb-1 dark:text-white">
+              DESCRIPTION
             </label>
-            <textarea
+            <input
+              type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Let people know what this channel is about"
+              className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-md 
+                       border border-gray-300 dark:border-gray-600 
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 
+                       dark:text-white"
             />
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
             <input
               type="checkbox"
               id="isPrivate"
               checked={isPrivate}
               onChange={(e) => setIsPrivate(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              className="rounded border-gray-300 dark:border-gray-600"
             />
-            <label htmlFor="isPrivate" className="ml-2 block text-sm text-gray-900">
+            <label htmlFor="isPrivate" className="text-sm dark:text-white">
               Private Channel
             </label>
           </div>
 
-          {isPrivate && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t dark:border-gray-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 
+                       hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
+              className="px-4 py-2 text-sm font-medium text-white 
+                       bg-blue-500 hover:bg-blue-600 rounded-md"
             >
               Create Channel
             </button>
@@ -142,4 +141,4 @@ export function CreateChannelModal({ isOpen, onClose }: CreateChannelModalProps)
       </div>
     </div>
   )
-} 
+}

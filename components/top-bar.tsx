@@ -2,7 +2,16 @@
 
 import { useState } from 'react'
 
-export function TopBar() {
+type TopBarProps = {
+  channel?: {
+    id: string
+    name: string
+    description: string
+    created_at: string
+  }
+}
+
+export function TopBar({ channel }: TopBarProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleSearch = (e: React.FormEvent) => {
