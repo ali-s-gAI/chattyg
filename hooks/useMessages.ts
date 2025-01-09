@@ -27,10 +27,13 @@ interface Message {
   created_at: string
   user_id: string
   channel_id: string
-  parent_id?: string | null
   profiles: {
     display_name: string | null
   } | null
+  message_reactions?: {
+    emoji: string
+    user_id: string
+  }[]
 }
 
 export function useMessages(channelId: string) {
@@ -42,49 +45,67 @@ export function useMessages(channelId: string) {
 
     const fetchMessages = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession()
+        
         const { data, error } = await supabase
           .from('messages')
           .select(`
             *,
-            profiles (
-              display_name
-            )
+            profiles (display_name),
+            message_reactions (emoji, user_id)
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })
 
+        console.log('Raw messages with reactions:', data) // Debug log
+
         if (error) throw error
-        
-        setMessages(data || [])
+
+        // Process messages and their reactions
+        const processedMessages = data.map((message: Message) => {
+          const reactionGroups = (message.message_reactions || []).reduce((acc: Record<string, { count: number, reacted: boolean }>, reaction) => {
+            if (!acc[reaction.emoji]) {
+              acc[reaction.emoji] = { count: 0, reacted: false }
+            }
+            acc[reaction.emoji].count++
+            if (reaction.user_id === session?.user?.id) {
+              acc[reaction.emoji].reacted = true
+            }
+            return acc
+          }, {})
+
+          const reactions = Object.entries(reactionGroups).map(([emoji, data]) => ({
+            emoji,
+            count: data.count,
+            reacted: data.reacted
+          }))
+
+          console.log('Processed message reactions:', message.id, reactions) // Debug log
+
+          return {
+            ...message,
+            reactions
+          }
+        })
+
+        setMessages(processedMessages)
         setLoading(false)
 
-        // Subscribe to new messages
+        // Subscribe to reaction changes
         subscription = supabase
-          .channel(`messages:${channelId}`)
+          .channel(`reactions:${channelId}`)
           .on('postgres_changes', 
             {
-              event: 'INSERT',
+              event: '*',
               schema: 'public',
-              table: 'messages',
-              filter: `channel_id=eq.${channelId}`
+              table: 'message_reactions',
+              filter: `message_id=eq.${channelId}`
             },
-            async (payload) => {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('display_name')
-                .eq('id', payload.new.user_id)
-                .single()
-              
-              const newMessage: Message = {
-                ...payload.new,
-                profiles: profile
-              }
-              
-              setMessages(current => [...current, newMessage])
+            () => {
+              fetchMessages() // Refetch when reactions change
             }
           )
           .subscribe()
-
       } catch (error) {
         console.error('Error:', error)
         setLoading(false)
@@ -116,4 +137,4 @@ export function useMessages(channelId: string) {
       if (error) throw error
     }
   }
-} 
+}

@@ -15,6 +15,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+import { createClient } from '@/utils/supabase/client'
+
+const supabase = createClient()
 
 interface MessageGroup {
   profileId: string
@@ -27,10 +32,17 @@ interface MessageGroup {
   }>
 }
 
+interface Reaction {
+  emoji: string
+  count: number
+  reacted: boolean
+}
+
 export function MessageArea({ channelId }: { channelId: string }) {
   const { messages, loading, sendMessage } = useMessages(channelId)
   const [messageInput, setMessageInput] = useState('')
   const [showReactions, setShowReactions] = useState<string | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -41,6 +53,28 @@ export function MessageArea({ channelId }: { channelId: string }) {
       setMessageInput('')
     } catch (error) {
       console.error('Failed to send message:', error)
+    }
+  }
+
+  const handleEmojiSelect = async (messageId: string, emoji: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+
+      const { error } = await supabase
+        .from('message_reactions')
+        .upsert([
+          {
+            message_id: messageId,
+            user_id: session.user.id,
+            emoji: emoji
+          }
+        ])
+        .select()
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error adding reaction:', error)
     }
   }
 
@@ -138,19 +172,50 @@ export function MessageArea({ channelId }: { channelId: string }) {
                         
                         {/* Reaction buttons */}
                         <div className={`absolute right-0 top-0 -mt-2 transition-opacity duration-200 ${
-                          showReactions === message.id ? 'opacity-100' : 'opacity-0 group-hover/message:opacity-100'
+                          showEmojiPicker === message.id ? 'opacity-100' : 'opacity-0 group-hover/message:opacity-100'
                         }`}>
-                          <div className="flex gap-1 bg-gray-700 rounded-full p-1 shadow-lg">
-                            <button 
-                              className="p-1 hover:bg-gray-600 rounded-full"
-                              onClick={() => setShowReactions(message.id)}
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button 
+                                className="p-1 hover:bg-gray-600 rounded-full"
+                                onClick={() => setShowEmojiPicker(message.id)}
+                              >
+                                <Smile className="w-4 h-4" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0 border-none">
+                              <Picker 
+                                data={data}
+                                onEmojiSelect={(emoji: any) => {
+                                  handleEmojiSelect(message.id, emoji.native)
+                                  setShowEmojiPicker(null)
+                                }}
+                                theme="dark"
+                                previewPosition="none"
+                                skinTonePosition="none"
+                                searchPosition="top"
+                                navPosition="bottom"
+                                perLine={8}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        {/* Display reactions */}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {console.log('Rendering reactions for message:', message.id, message.reactions)}
+                          {message.reactions?.map((reaction) => (
+                            <button
+                              key={reaction.emoji}
+                              onClick={() => handleEmojiSelect(message.id, reaction.emoji)}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm ${
+                                reaction.reacted ? 'bg-blue-500/20' : 'bg-gray-700/50'
+                              } hover:bg-gray-600/50 transition-colors`}
                             >
-                              <Smile className="w-4 h-4" />
+                              <span>{reaction.emoji}</span>
+                              <span className="text-xs text-gray-400">{reaction.count}</span>
                             </button>
-                            <button className="p-1 hover:bg-gray-600 rounded-full">
-                              <Plus className="w-4 h-4" />
-                            </button>
-                          </div>
+                          ))}
                         </div>
                       </div>
                     ))}
