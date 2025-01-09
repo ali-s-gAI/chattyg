@@ -2,24 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { usePathname } from 'next/navigation'
 
 const supabase = createClient()
-
-interface Profile {
-  id: string
-  display_name: string
-}
-
-interface ChannelMember {
-  user_id: string
-  profiles: {
-    id: string
-    display_name: string | null
-    avatar_url: string | null
-    updated_at: string
-    created_at: string
-  } | null
-}
 
 interface User {
   id: string
@@ -27,14 +12,14 @@ interface User {
   online: boolean
 }
 
-interface UserListProps {
-  channelId: string | null
-}
-
-export function UserList({ channelId }: UserListProps) {
+export function UserList() {
   const [users, setUsers] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Get channelId from URL
+  const pathname = usePathname()
+  const channelId = pathname.startsWith('/chat/') ? pathname.split('/').pop() : null
 
   useEffect(() => {
     if (!channelId) {
@@ -64,10 +49,11 @@ export function UserList({ channelId }: UserListProps) {
   }, [channelId])
 
   const fetchChannelMembers = async () => {
+    if (!channelId) return
+
     try {
       setIsLoading(true)
       
-      // Get all channel members with their profiles in a single query
       const { data: members, error: membersError } = await supabase
         .from('channel_members')
         .select(`
@@ -76,32 +62,22 @@ export function UserList({ channelId }: UserListProps) {
         `)
         .eq('channel_id', channelId)
 
-      console.log('Channel members query result:', { members, membersError })
-
       if (membersError) throw membersError
 
-      if (!members || members.length === 0) {
-        setUsers([])
-        return
-      }
-
-      // Format the users array with proper type casting
       const formattedUsers = members
         ?.filter(member => member.profiles)
         .map(member => ({
           id: member.user_id,
           display_name: (member.profiles as { display_name: string | null }).display_name || 'Anonymous',
-          online: true
+          online: true // You can implement real online status later
         })) || []
 
-      console.log('Formatted users:', formattedUsers)
       setUsers(formattedUsers)
       setError(null)
 
     } catch (err) {
-      const error = err as Error
-      console.error('Detailed error:', error)
-      setError(`Error: ${error.message}`)
+      console.error('Error fetching members:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)
     }

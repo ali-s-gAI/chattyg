@@ -3,37 +3,42 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Settings } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { CreateChannelModal } from '@/components/create-channel-modal'
 
-type SidebarProps = {
-  channels: Array<{
-    id: string
-    name: string
-    description: string
-    created_at: string
-  }>
-  currentChannelId: string | null
-  onChannelSelect: (channelId: string) => void
-  onCreateChannel: () => void
-}
+export function Sidebar({ channels }: { channels: Array<{ id: string; name: string }> }) {
+  const pathname = usePathname()
+  const currentChannelId = pathname.split('/').pop()
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-export function Sidebar({ channels, currentChannelId, onChannelSelect, onCreateChannel }: SidebarProps) {
+  const handleCreateChannelSuccess = () => {
+    setIsCreateModalOpen(false)
+    // The channels will update automatically through Supabase real-time subscription
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-between items-center mb-4">
         <h2>Channels</h2>
-        <button onClick={onCreateChannel} className="text-gray-400 hover:text-white">+</button>
+        <button 
+          onClick={() => setIsCreateModalOpen(true)} 
+          className="text-gray-400 hover:text-white"
+        >
+          +
+        </button>
       </div>
       <div className="flex-1 overflow-y-auto">
         <ul className="space-y-1">
           {channels.map(channel => (
-            <li 
-              key={channel.id}
-              onClick={() => onChannelSelect(channel.id)}
-              className={`px-2 py-1 rounded cursor-pointer hover:bg-gray-700 ${
-                channel.id === currentChannelId ? 'bg-gray-700' : ''
-              }`}
-            >
-              # {channel.name}
+            <li key={channel.id}>
+              <Link
+                href={`/chat/${channel.id}`}
+                className={`block px-2 py-1 rounded cursor-pointer hover:bg-gray-700 ${
+                  channel.id === currentChannelId ? 'bg-gray-700' : ''
+                }`}
+              >
+                # {channel.name}
+              </Link>
             </li>
           ))}
         </ul>
@@ -48,6 +53,12 @@ export function Sidebar({ channels, currentChannelId, onChannelSelect, onCreateC
           <span>Account Settings</span>
         </Link>
       </div>
+
+      <CreateChannelModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateChannelSuccess}
+      />
     </div>
   )
 }
