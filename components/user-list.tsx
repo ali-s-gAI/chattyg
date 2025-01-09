@@ -5,6 +5,22 @@ import { createClient } from '@/utils/supabase/client'
 
 const supabase = createClient()
 
+interface Profile {
+  id: string
+  display_name: string
+}
+
+interface ChannelMember {
+  user_id: string
+  profiles: {
+    id: string
+    display_name: string | null
+    avatar_url: string | null
+    updated_at: string
+    created_at: string
+  } | null
+}
+
 interface User {
   id: string
   display_name: string
@@ -56,10 +72,7 @@ export function UserList({ channelId }: UserListProps) {
         .from('channel_members')
         .select(`
           user_id,
-          profiles:user_id (
-            id,
-            display_name
-          )
+          profiles!user_id (*)
         `)
         .eq('channel_id', channelId)
 
@@ -72,14 +85,14 @@ export function UserList({ channelId }: UserListProps) {
         return
       }
 
-      // Format the users array
+      // Format the users array with proper type casting
       const formattedUsers = members
-        .filter(member => member.profiles) // Filter out any null profiles
+        ?.filter(member => member.profiles)
         .map(member => ({
-          id: member.profiles.id,
-          display_name: member.profiles.display_name || 'Anonymous',
-          online: true // We'll handle online status separately
-        }))
+          id: member.user_id,
+          display_name: (member.profiles as { display_name: string | null }).display_name || 'Anonymous',
+          online: true
+        })) || []
 
       console.log('Formatted users:', formattedUsers)
       setUsers(formattedUsers)
@@ -108,9 +121,6 @@ export function UserList({ channelId }: UserListProps) {
       {error && (
         <p className="text-red-500 text-sm mb-4">{error}</p>
       )}
-      {/* <pre className="text-xs text-gray-500 mb-4">
-        Debug: Channel {channelId}
-      </pre> */}
       <ul className="space-y-2">
         {users.map(user => (
           <li 

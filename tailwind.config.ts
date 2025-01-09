@@ -72,9 +72,44 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: 'none',
+            color: 'inherit',
+            a: {
+              color: 'inherit',
+              textDecoration: 'underline',
+              fontWeight: '500',
+            },
+            strong: {
+              color: 'inherit',
+              fontWeight: '600',
+            },
+            em: {
+              color: 'inherit',
+            },
+            code: {
+              color: 'inherit',
+              backgroundColor: 'hsl(var(--muted))',
+              borderRadius: '0.25rem',
+              padding: '0.25rem',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
+  ],
 } satisfies Config;
 
 export default config;

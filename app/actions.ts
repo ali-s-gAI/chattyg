@@ -11,21 +11,40 @@ export async function signUpAction(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const displayName = formData.get('display_name') as string
+
+  if (!displayName) {
+    return redirect('/auth-pages/sign-up?error=Display name is required')
+  }
   
   const supabase = await createClient()
   
-  const { error } = await supabase.auth.signUp({
+  // First create the auth user
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      data: {
-        display_name: displayName
-      }
-    }
   })
 
-  if (error) {
-    return redirect('/auth-pages/sign-up?error=' + error.message)
+  if (authError) {
+    return redirect('/auth-pages/sign-up?error=' + authError.message)
+  }
+
+  if (!authData.user) {
+    return redirect('/auth-pages/sign-up?error=Failed to create user')
+  }
+
+  // Then create their profile
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .insert([
+      {
+        id: authData.user.id,
+        display_name: displayName,
+      }
+    ])
+
+  if (profileError) {
+    console.error('Error creating profile:', profileError)
+    return redirect('/auth-pages/sign-up?error=Failed to create profile')
   }
 
   return redirect('/auth-pages/sign-in?message=Account created successfully! Please sign in.')
