@@ -26,13 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full w-full">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={true}
-        >
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   )

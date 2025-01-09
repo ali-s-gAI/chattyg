@@ -5,77 +5,102 @@ import { createClient } from '@/utils/supabase/client'
 
 const supabase = createClient()
 
-type User = {
+interface User {
   id: string
   display_name: string
   online: boolean
 }
 
-type UserListProps = {
+interface UserListProps {
   channelId: string | null
 }
 
 export function UserList({ channelId }: UserListProps) {
   const [users, setUsers] = useState<User[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     if (!channelId) {
-      console.log('No channelId provided')
+      setUsers([])
+      setIsLoading(false)
       return
     }
 
-    const fetchChannelMembers = async () => {
-      try {
-        // Log the current session
-        const { data: { session } } = await supabase.auth.getSession()
-        console.log('Current session:', session?.user.id)
+    // Initial fetch of users
+    fetchChannelMembers()
 
-        // First get channel members
-        const { data: members, error: membersError } = await supabase
-          .from('channel_members')
-          .select('user_id')
-          .eq('channel_id', channelId)
-
-        console.log('Channel members query:', { members, membersError })
-
-        if (membersError) throw membersError
-
-        if (!members || members.length === 0) {
-          console.log('No members found in channel')
-          setUsers([])
-          return
+    // Set up real-time subscription
+    const channel = supabase
+      .channel(`channel:${channelId}`)
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'channel_members' },
+        () => {
+          console.log('Channel members changed, refreshing...')
+          fetchChannelMembers()
         }
+      )
+      .subscribe()
 
-        // Then get profiles for these members
-        const { data: profiles, error: profilesError } = await supabase
-          .from('profiles')
-          .select('id, display_name')
-          .in('id', members.map(m => m.user_id))
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [channelId])
 
-        console.log('Profiles query:', { profiles, profilesError })
+  const fetchChannelMembers = async () => {
+    try {
+      setIsLoading(true)
+      
+      // Get all channel members with their profiles in a single query
+      const { data: members, error: membersError } = await supabase
+        .from('channel_members')
+        .select(`
+          user_id,
+          profiles:user_id (
+            id,
+            display_name
+          )
+        `)
+        .eq('channel_id', channelId)
 
-        if (profilesError) throw profilesError
+      console.log('Channel members query result:', { members, membersError })
 
-        const formattedUsers = profiles.map(profile => ({
-          id: profile.id,
-          display_name: profile.display_name || 'Anonymous',
-          online: true
+      if (membersError) throw membersError
+
+      if (!members || members.length === 0) {
+        setUsers([])
+        return
+      }
+
+      // Format the users array
+      const formattedUsers = members
+        .filter(member => member.profiles) // Filter out any null profiles
+        .map(member => ({
+          id: member.profiles.id,
+          display_name: member.profiles.display_name || 'Anonymous',
+          online: true // We'll handle online status separately
         }))
 
-        console.log('Formatted users:', formattedUsers)
-        setUsers(formattedUsers)
-        setError(null)
+      console.log('Formatted users:', formattedUsers)
+      setUsers(formattedUsers)
+      setError(null)
 
-      } catch (err) {
-        const error = err as Error
-        console.error('Detailed error:', error)
-        setError(`Error: ${error.message || 'Unknown error'}`)
-      }
+    } catch (err) {
+      const error = err as Error
+      console.error('Detailed error:', error)
+      setError(`Error: ${error.message}`)
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    fetchChannelMembers()
-  }, [channelId])
+  if (isLoading) {
+    return (
+      <div className="p-4">
+        <h2 className="text-lg font-semibold mb-4">Loading users...</h2>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4">
@@ -90,12 +115,15 @@ export function UserList({ channelId }: UserListProps) {
         {users.map(user => (
           <li 
             key={user.id} 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 p-2 rounded hover:bg-gray-700/50 cursor-pointer"
           >
             <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-500'}`} />
             <span>{user.display_name}</span>
           </li>
         ))}
+        {users.length === 0 && (
+          <li className="text-gray-400 text-sm">No users in this channel</li>
+        )}
       </ul>
     </div>
   )

@@ -5,40 +5,34 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default async function Login(props: { searchParams: Promise<Message> }) {
-  const searchParams = await props.searchParams;
+export default function SignIn({
+  searchParams,
+}: {
+  searchParams: Message
+}) {
   return (
-    <form className="flex-1 flex flex-col min-w-64">
-      <h1 className="text-2xl font-medium">Sign in</h1>
-      <p className="text-sm text-foreground">
-        Don't have an account?{" "}
-        <Link className="text-foreground font-medium underline" href="/auth-pages/sign-up">
-          Sign up
-        </Link>
-      </p>
-      <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-        <Label htmlFor="email">Email</Label>
-        <Input name="email" placeholder="you@example.com" required />
-        <div className="flex justify-between items-center">
-          <Label htmlFor="password">Password</Label>
-          <Link
-            className="text-xs text-foreground underline"
-            href="/forgot-password"
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <div className="w-full max-w-sm mx-auto p-6">
+        <form className="flex flex-col items-center w-full">
+          <h1 className="text-2xl font-medium mb-6">Sign in</h1>
+          <Link 
+            href="/auth-pages/sign-up" 
+            className="text-sm text-accent hover:underline mb-8"
           >
-            Forgot Password?
+            Don&apos;t have an account? Sign up
           </Link>
-        </div>
-        <Input
-          type="password"
-          name="password"
-          placeholder="Your password"
-          required
-        />
-        <SubmitButton pendingText="Signing In..." formAction={signInAction}>
-          Sign in
-        </SubmitButton>
-        <FormMessage message={searchParams} />
+          <div className="w-full space-y-4">
+            <Label htmlFor="email">Email</Label>
+            <Input name="email" placeholder="you@example.com" required />
+            <Label htmlFor="password">Password</Label>
+            <Input type="password" name="password" placeholder="••••••••" required />
+            <SubmitButton formAction={signInAction} pendingText="Signing in...">
+              Sign in
+            </SubmitButton>
+            <FormMessage message={searchParams} />
+          </div>
+        </form>
       </div>
-    </form>
-  );
+    </div>
+  )
 }

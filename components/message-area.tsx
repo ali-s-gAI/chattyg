@@ -71,4 +71,3 @@ export function MessageArea({ channelId }: { channelId: string }) {
     </div>
   )
 }
-
