@@ -29,6 +29,11 @@ interface MessageGroup {
     id: string
     content: string
     created_at: string
+    reactions?: Array<{
+      emoji: string
+      count: number
+      reacted: boolean
+    }>
   }>
 }
 
@@ -36,6 +41,21 @@ interface Reaction {
   emoji: string
   count: number
   reacted: boolean
+}
+
+interface Message {
+  id: string
+  content: string
+  created_at: string
+  user_id: string
+  profiles?: {
+    display_name: string | null
+  }
+  reactions?: Array<{
+    emoji: string
+    count: number
+    reacted: boolean
+  }>
 }
 
 export function MessageArea({ channelId }: { channelId: string }) {
@@ -61,20 +81,39 @@ export function MessageArea({ channelId }: { channelId: string }) {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
 
-      const { error } = await supabase
+      // Check if user already reacted with this emoji
+      const { data: existingReaction } = await supabase
         .from('message_reactions')
-        .upsert([
-          {
+        .select('*')
+        .eq('message_id', messageId)
+        .eq('user_id', session.user.id)
+        .eq('emoji', emoji)
+        .single()
+
+      if (existingReaction) {
+        // Remove reaction if it exists
+        const { error } = await supabase
+          .from('message_reactions')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', session.user.id)
+          .eq('emoji', emoji)
+
+        if (error) throw error
+      } else {
+        // Add new reaction
+        const { error } = await supabase
+          .from('message_reactions')
+          .insert([{
             message_id: messageId,
             user_id: session.user.id,
             emoji: emoji
-          }
-        ])
-        .select()
+          }])
 
-      if (error) throw error
+        if (error) throw error
+      }
     } catch (error) {
-      console.error('Error adding reaction:', error)
+      console.error('Error managing reaction:', error)
     }
   }
 
@@ -95,7 +134,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
       lastGroup.messages.push({
         id: message.id,
         content: message.content,
-        created_at: message.created_at
+        created_at: message.created_at,
+        reactions: message.reactions
       })
     } else {
       groups.push({
@@ -105,7 +145,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
         messages: [{
           id: message.id,
           content: message.content,
-          created_at: message.created_at
+          created_at: message.created_at,
+          reactions: message.reactions
         }]
       })
     }
@@ -208,9 +249,11 @@ export function MessageArea({ channelId }: { channelId: string }) {
                             <button
                               key={reaction.emoji}
                               onClick={() => handleEmojiSelect(message.id, reaction.emoji)}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm ${
-                                reaction.reacted ? 'bg-blue-500/20' : 'bg-gray-700/50'
-                              } hover:bg-gray-600/50 transition-colors`}
+                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm 
+                                ${reaction.reacted 
+                                  ? 'bg-blue-500/50 hover:bg-blue-500/40' 
+                                  : 'bg-gray-700/50 hover:bg-gray-600/50'
+                                } transition-colors`}
                             >
                               <span>{reaction.emoji}</span>
                               <span className="text-xs text-gray-400">{reaction.count}</span>
