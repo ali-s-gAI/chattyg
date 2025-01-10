@@ -160,17 +160,17 @@ export function MessageArea({ channelId }: { channelId: string }) {
 
       if (existingReaction) {
         // Remove reaction if it exists
-        const { error } = await supabase
+        const { error: deleteError } = await supabase
           .from('message_reactions')
           .delete()
           .eq('message_id', messageId)
           .eq('user_id', session.user.id)
           .eq('emoji', emoji)
 
-        if (error) throw error
+        if (deleteError) throw deleteError
       } else {
         // Add new reaction
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('message_reactions')
           .insert([{
             message_id: messageId,
@@ -178,10 +178,10 @@ export function MessageArea({ channelId }: { channelId: string }) {
             emoji: emoji
           }])
 
-        if (error) throw error
+        if (insertError) throw insertError
       }
     } catch (error) {
-      console.error('Error managing reaction:', error)
+      console.error('Error handling emoji reaction:', error)
     }
   }
 

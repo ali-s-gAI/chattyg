@@ -113,7 +113,7 @@ export function useMessages(channelId: string) {
 
     fetchMessages()
 
-    // Existing subscriptions
+    // Message subscription
     const messageSubscription = supabase
       .channel('messages_changes')
       .on('postgres_changes',
@@ -122,6 +122,19 @@ export function useMessages(channelId: string) {
           schema: 'public',
           table: 'messages',
           filter: `channel_id=eq.${channelId}`
+        },
+        () => fetchMessages()
+      )
+      .subscribe()
+
+    // Modified reactions subscription - remove the filter
+    const reactionsSubscription = supabase
+      .channel('reactions_changes')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'message_reactions'
         },
         () => fetchMessages()
       )
@@ -142,6 +155,7 @@ export function useMessages(channelId: string) {
 
     return () => {
       messageSubscription.unsubscribe()
+      reactionsSubscription.unsubscribe()
       attachmentsSubscription.unsubscribe()
     }
   }, [channelId])
