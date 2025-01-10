@@ -7,8 +7,9 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import ReactMarkdown from 'react-markdown'
-import { Smile, Plus, Send } from 'lucide-react'
+import { Smile, Plus, Send, Reply } from 'lucide-react'
 import { useState, FormEvent } from 'react'
+import { ThreadSection } from '@/components/thread-section'
 import {
   Tooltip,
   TooltipContent,
@@ -29,11 +30,8 @@ interface MessageGroup {
     id: string
     content: string
     created_at: string
-    reactions?: Array<{
-      emoji: string
-      count: number
-      reacted: boolean
-    }>
+    thread_count: number
+    reactions: any[]
   }>
 }
 
@@ -48,14 +46,12 @@ interface Message {
   content: string
   created_at: string
   user_id: string
+  thread_count: number
   profiles?: {
     display_name: string | null
+    avatar_url: string | null
   }
-  reactions?: Array<{
-    emoji: string
-    count: number
-    reacted: boolean
-  }>
+  reactions: any[]
 }
 
 export function MessageArea({ channelId }: { channelId: string }) {
@@ -63,6 +59,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
   const [messageInput, setMessageInput] = useState('')
   const [showReactions, setShowReactions] = useState<string | null>(null)
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
+  const [isThreadOpen, setIsThreadOpen] = useState<string | null>(null)
+  const [threadOpenForMessage, setThreadOpenForMessage] = useState<string | null>(null)
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -117,6 +115,10 @@ export function MessageArea({ channelId }: { channelId: string }) {
     }
   }
 
+  const handleReply = async (messageId: string) => {
+    setThreadOpenForMessage(messageId)
+  }
+
   if (loading) {
     return <div className="p-4">Loading messages...</div>
   }
@@ -135,6 +137,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
         id: message.id,
         content: message.content,
         created_at: message.created_at,
+        thread_count: message.thread_count,
         reactions: message.reactions
       })
     } else {
@@ -146,6 +149,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
           id: message.id,
           content: message.content,
           created_at: message.created_at,
+          thread_count: message.thread_count,
           reactions: message.reactions
         }]
       })
@@ -211,35 +215,44 @@ export function MessageArea({ channelId }: { channelId: string }) {
                           </ReactMarkdown>
                         </div>
                         
-                        {/* Reaction buttons */}
+                        {/* Reaction and Reply buttons */}
                         <div className={`absolute right-0 top-0 -mt-2 transition-opacity duration-200 ${
                           showEmojiPicker === message.id ? 'opacity-100' : 'opacity-0 group-hover/message:opacity-100'
                         }`}>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button 
-                                className="p-1 hover:bg-gray-600 rounded-full"
-                                onClick={() => setShowEmojiPicker(message.id)}
-                              >
-                                <Smile className="w-4 h-4" />
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 border-none">
-                              <Picker 
-                                data={data}
-                                onEmojiSelect={(emoji: any) => {
-                                  handleEmojiSelect(message.id, emoji.native)
-                                  setShowEmojiPicker(null)
-                                }}
-                                theme="dark"
-                                previewPosition="none"
-                                skinTonePosition="none"
-                                searchPosition="top"
-                                navPosition="bottom"
-                                perLine={8}
-                              />
-                            </PopoverContent>
-                          </Popover>
+                          <div className="flex gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button 
+                                  className="p-1 hover:bg-gray-600 rounded-full"
+                                  onClick={() => setShowEmojiPicker(message.id)}
+                                >
+                                  <Smile className="w-4 h-4" />
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0 border-none">
+                                <Picker 
+                                  data={data}
+                                  onEmojiSelect={(emoji: any) => {
+                                    handleEmojiSelect(message.id, emoji.native)
+                                    setShowEmojiPicker(null)
+                                  }}
+                                  theme="dark"
+                                  previewPosition="none"
+                                  skinTonePosition="none"
+                                  searchPosition="top"
+                                  navPosition="bottom"
+                                  perLine={8}
+                                />
+                              </PopoverContent>
+                            </Popover>
+
+                            <button 
+                              className="p-1 hover:bg-gray-600 rounded-full"
+                              onClick={() => handleReply(message.id)}
+                            >
+                              <Reply className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
 
                         {/* Display reactions */}
@@ -260,6 +273,14 @@ export function MessageArea({ channelId }: { channelId: string }) {
                             </button>
                           ))}
                         </div>
+
+                        {threadOpenForMessage === message.id && (
+                          <ThreadSection 
+                            channelId={channelId}
+                            parentMessageId={message.id}
+                            onClose={() => setThreadOpenForMessage(null)}
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
