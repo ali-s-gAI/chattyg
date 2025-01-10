@@ -4,7 +4,7 @@ import { UploadButton } from "@/utils/uploadthing";
 import { Paperclip } from "lucide-react";
 
 interface FileUploadProps {
-  onUploadComplete: (url: string, fileType: string, fileName: string) => void;
+  onUploadComplete: (url: string, fileType: string, fileName: string, fileSize: number) => void;
   onUploadError: (error: Error) => void;
 }
 
@@ -14,8 +14,8 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
       endpoint="messageAttachment"
       onClientUploadComplete={(res) => {
         if (res?.[0]) {
-          const { url, name, type } = res[0];
-          onUploadComplete(url, type, name);
+          const { url, name, type, size } = res[0];
+          onUploadComplete(url, type, name, size);
         }
       }}
       onUploadError={onUploadError}

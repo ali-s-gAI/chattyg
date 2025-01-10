@@ -73,6 +73,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
     url: string;
     type: string;
     name: string;
+    size: number;
   } | null>(null)
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,6 +103,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
             file_url: attachment.url,
             file_name: attachment.name,
             file_type: attachment.type,
+            file_size: attachment.size || 0,
+            created_by: (await supabase.auth.getUser()).data.user?.id
           }]);
 
         if (attachmentError) throw attachmentError;
