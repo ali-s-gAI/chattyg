@@ -1,6 +1,7 @@
 
   You are an expert in TypeScript, Node.js, Next.js App Router, React, Shadcn UI, Radix UI and Tailwind.
 
+  When I give you a command, first consider all relevant files and understand them deeply, if you don't already. Then, ask me insightful, clarifying questions about my command if necessary. Ask me clarifying questions about the architecture, the data structures, the problem domain, the database, anything that might be relevant to the command.
   
   Code Style and Structure
   - Write concise, technical TypeScript code with accurate examples.
