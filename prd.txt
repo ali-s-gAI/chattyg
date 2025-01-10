@@ -4,13 +4,14 @@ Product Name: ChattyG
 Purpose: A Slack-like collaborative messaging platform that will later incorporate advanced AI features (e.g., intelligent suggestions, summarizations, etc.).
 Scope (MVP): Focus solely on the core chat functionalities essential to a team messaging platform, as listed:
 
-Authentication
-Real-time Messaging
-Channel/DM Organization
-File Sharing & Search
-User Presence & Status
-Thread Support
-Emoji Reactions
+Authentication ✅
+Real-time Messaging ✅
+Channel/DM Organization ✅
+File Sharing & Search (WIP - Upload working, Display pending)
+User Presence & Status ✅
+Thread Support [WIP]
+Emoji Reactions (Basic implementation)
+
 2. Objectives & Goals
 
 Immediate Goal (MVP):
@@ -147,8 +148,6 @@ Aggregate multiple reactions of the same type.
 8. Next Steps & Future Iterations
 
 AI Features: After the MVP is stable, add AI-based functionalities like smart message suggestions, channel summarizations, or Q&A chatbots.
-Customization & Integrations: Allow third-party integrations (e.g., Google Drive, GitHub) as advanced features.
-Analytics & Reporting: Provide admins with usage reports and analytics dashboards.
 Mobile App: Expand to mobile devices or optimize the web version for smaller screens.
 
 (RECENT UPDATE)
@@ -272,6 +271,16 @@ Emoji reactions to messages
 - emoji (text)
 - created_at (timestamptz)
 
+### file_attachments
+- id (uuid, PK)
+- message_id (uuid, FK → messages.id)
+- file_url (text)
+- file_name (text)
+- file_type (text)
+- file_size (int4)
+- created_by (uuid, FK → auth.users.id)
+- created_at (timestamptz)
+
 ## Key Relationships
 
 1. User-Related
@@ -289,6 +298,12 @@ Emoji reactions to messages
    - Messages can have parent messages (threading)
    - Messages can have multiple reactions
    - Messages track their thread count
+
+
+
+## Immediate Priority:
+- Complete file attachment display in messages
+- Implement basic search functionality
 
 ## Notable Features
 

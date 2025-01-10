@@ -30,11 +30,18 @@ interface Message {
   thread_count: number
   profiles: {
     display_name: string | null
+    avatar_url: string | null
   } | null
   reactions?: Array<{
     emoji: string
     count: number
     reacted: boolean
+  }>
+  file_attachments?: Array<{
+    file_url: string
+    file_name: string
+    file_type: string
+    file_size: number
   }>
 }
 
@@ -48,7 +55,6 @@ export function useMessages(channelId: string) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         
-        // First get messages with reactions
         const { data: messagesData, error } = await supabase
           .from('messages')
           .select(`
@@ -62,19 +68,20 @@ export function useMessages(channelId: string) {
               file_name,
               file_type,
               file_size
+            ),
+            message_reactions (
+              emoji,
+              user_id
             )
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })
 
-        console.log('Raw message data:', messagesData) // Add this line
-
         if (error) throw error
 
-        // Process messages with their reactions
         const processedMessages = messagesData.map(message => {
-          // Group reactions by emoji
-          const reactionCounts = message.message_reactions?.reduce((acc: any, reaction) => {
+          // Process reactions
+          const reactionGroups = message.message_reactions?.reduce((acc: any, reaction) => {
             if (!acc[reaction.emoji]) {
               acc[reaction.emoji] = {
                 count: 0,
@@ -82,14 +89,13 @@ export function useMessages(channelId: string) {
               }
             }
             acc[reaction.emoji].count++
-            if (reaction.user_id === session?.user.id) {
+            if (reaction.user_id === session?.user?.id) {
               acc[reaction.emoji].reacted = true
             }
             return acc
           }, {}) || {}
 
-          // Convert to array format
-          const reactions = Object.entries(reactionCounts).map(([emoji, data]: [string, any]) => ({
+          const reactions = Object.entries(reactionGroups).map(([emoji, data]: [string, any]) => ({
             emoji,
             count: data.count,
             reacted: data.reacted
@@ -97,11 +103,12 @@ export function useMessages(channelId: string) {
 
           return {
             ...message,
-            reactions
+            reactions,
+            file_attachments: message.file_attachments || []
           }
         })
 
-        console.log('Processed messages:', processedMessages) // Debug log
+        console.log('Processed messages:', processedMessages)
         setMessages(processedMessages)
         setLoading(false)
       } catch (error) {
@@ -121,8 +128,7 @@ export function useMessages(channelId: string) {
           schema: 'public',
           table: 'message_reactions',
         },
-        (payload) => {
-          console.log('Reaction change detected:', payload)
+        () => {
           fetchMessages() // Refetch messages when reactions change
         }
       )
