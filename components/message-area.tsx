@@ -34,6 +34,12 @@ interface MessageGroup {
     created_at: string
     thread_count: number
     reactions: any[]
+    file_attachments?: Array<{
+      file_url: string
+      file_name: string
+      file_type: string
+      file_size: number
+    }>
   }>
 }
 
@@ -202,7 +208,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
         content: message.content,
         created_at: message.created_at,
         thread_count: message.thread_count,
-        reactions: message.reactions
+        reactions: message.reactions,
+        file_attachments: message.file_attachments
       })
     } else {
       groups.push({
@@ -214,7 +221,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
           content: message.content,
           created_at: message.created_at,
           thread_count: message.thread_count,
-          reactions: message.reactions
+          reactions: message.reactions,
+          file_attachments: message.file_attachments
         }]
       })
     }

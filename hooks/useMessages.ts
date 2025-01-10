@@ -53,8 +53,6 @@ export function useMessages(channelId: string) {
     const fetchMessages = async () => {
       await updateUserLastSeen()
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        
         const { data: messagesData, error } = await supabase
           .from('messages')
           .select(`
@@ -63,52 +61,31 @@ export function useMessages(channelId: string) {
               display_name,
               avatar_url
             ),
-            file_attachments (
+            file_attachments!file_attachments_message_id_fkey (
               file_url,
               file_name,
               file_type,
               file_size
-            ),
-            message_reactions (
-              emoji,
-              user_id
             )
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })
 
+        // Debug log 1: Raw data from Supabase
+        console.log('Raw Supabase data:', JSON.stringify(messagesData?.[0], null, 2))
+        
         if (error) throw error
 
-        const processedMessages = messagesData.map(message => {
-          // Process reactions
-          const reactionGroups = message.message_reactions?.reduce((acc: any, reaction) => {
-            if (!acc[reaction.emoji]) {
-              acc[reaction.emoji] = {
-                count: 0,
-                reacted: false
-              }
-            }
-            acc[reaction.emoji].count++
-            if (reaction.user_id === session?.user?.id) {
-              acc[reaction.emoji].reacted = true
-            }
-            return acc
-          }, {}) || {}
+        const processedMessages = messagesData.map(message => ({
+          ...message,
+          reactions: processReactions(message.message_reactions),
+          file_attachments: message.file_attachments || []
+        }))
 
-          const reactions = Object.entries(reactionGroups).map(([emoji, data]: [string, any]) => ({
-            emoji,
-            count: data.count,
-            reacted: data.reacted
-          }))
+        // Debug log 2: Processed message with attachments
+        console.log('Processed message with attachments:', 
+          JSON.stringify(processedMessages[processedMessages.length - 1], null, 2))
 
-          return {
-            ...message,
-            reactions,
-            file_attachments: message.file_attachments || []
-          }
-        })
-
-        console.log('Processed messages:', processedMessages)
         setMessages(processedMessages)
         setLoading(false)
       } catch (error) {
