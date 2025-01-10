@@ -2,43 +2,47 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { usePathname } from 'next/navigation'
 
 const supabase = createClient()
 
 interface User {
   id: string
-  display_name: string
-  online: boolean
+  display_name: string | null
+  last_seen: string | null
 }
 
 export function UserList() {
   const [users, setUsers] = useState<User[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  
-  // Get channelId from URL
-  const pathname = usePathname()
-  const channelId = pathname.startsWith('/chat/') ? pathname.split('/').pop() : null
+
+  const isOnline = (lastSeen: string | null) => {
+    if (!lastSeen) return false
+    // Consider user online if seen in last 5 minutes
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+    return new Date(lastSeen) > fiveMinutesAgo
+  }
 
   useEffect(() => {
-    if (!channelId) {
-      setUsers([])
-      setIsLoading(false)
-      return
+    const fetchUsers = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, display_name, last_seen')
+        .order('display_name')
+
+      setUsers(data || [])
     }
 
-    // Initial fetch of users
-    fetchChannelMembers()
+    fetchUsers()
 
-    // Set up real-time subscription
     const channel = supabase
-      .channel(`channel:${channelId}`)
+      .channel('profiles_updates')
       .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'channel_members' },
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles' 
+        }, 
         () => {
-          console.log('Channel members changed, refreshing...')
-          fetchChannelMembers()
+          fetchUsers()
         }
       )
       .subscribe()
@@ -46,71 +50,25 @@ export function UserList() {
     return () => {
       channel.unsubscribe()
     }
-  }, [channelId])
-
-  const fetchChannelMembers = async () => {
-    if (!channelId) return
-
-    try {
-      setIsLoading(true)
-      
-      const { data: members, error: membersError } = await supabase
-        .from('channel_members')
-        .select(`
-          user_id,
-          profiles!user_id (*)
-        `)
-        .eq('channel_id', channelId)
-
-      if (membersError) throw membersError
-
-      const formattedUsers = members
-        ?.filter(member => member.profiles)
-        .map(member => ({
-          id: member.user_id,
-          display_name: (member.profiles as { display_name: string | null }).display_name || 'Anonymous',
-          online: true // You can implement real online status later
-        })) || []
-
-      setUsers(formattedUsers)
-      setError(null)
-
-    } catch (err) {
-      console.error('Error fetching members:', err)
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="p-4">
-        <h2 className="text-lg font-semibold mb-4">Loading users...</h2>
-      </div>
-    )
-  }
+  }, [])
 
   return (
     <div className="p-4">
-      <h2 className="text-lg font-semibold mb-4">Users ({users.length})</h2>
-      {error && (
-        <p className="text-red-500 text-sm mb-4">{error}</p>
-      )}
-      <ul className="space-y-2">
+      <h2 className="text-lg font-semibold mb-4">Users</h2>
+      <div className="space-y-2">
         {users.map(user => (
-          <li 
-            key={user.id} 
-            className="flex items-center gap-2 p-2 rounded hover:bg-gray-700/50 cursor-pointer"
-          >
-            <div className={`w-2 h-2 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-500'}`} />
-            <span>{user.display_name}</span>
-          </li>
+          <div key={user.id} className="flex items-center gap-2">
+            <div 
+              className={`w-2 h-2 rounded-full ${
+                isOnline(user.last_seen) 
+                  ? 'bg-green-500' 
+                  : 'bg-gray-400'
+              }`}
+            />
+            <span>{user.display_name || 'Anonymous'}</span>
+          </div>
         ))}
-        {users.length === 0 && (
-          <li className="text-gray-400 text-sm">No users in this channel</li>
-        )}
-      </ul>
+      </div>
     </div>
   )
 } 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { RealtimeChannel } from '@supabase/supabase-js'
+import { updateUserLastSeen } from '@/utils/user-status'
 
 const supabase = createClient()
 
@@ -43,6 +44,7 @@ export function useMessages(channelId: string) {
 
   useEffect(() => {
     const fetchMessages = async () => {
+      await updateUserLastSeen()
       try {
         const { data: { session } } = await supabase.auth.getSession()
         
@@ -146,6 +148,7 @@ export function useMessages(channelId: string) {
 
   const sendMessage = async (content: string) => {
     try {
+      await updateUserLastSeen()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Not authenticated')
 

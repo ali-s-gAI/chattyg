@@ -150,3 +150,35 @@ AI Features: After the MVP is stable, add AI-based functionalities like smart me
 Customization & Integrations: Allow third-party integrations (e.g., Google Drive, GitHub) as advanced features.
 Analytics & Reporting: Provide admins with usage reports and analytics dashboards.
 Mobile App: Expand to mobile devices or optimize the web version for smaller screens.
+
+
+(NEW CONVERSATION JAN 9 18:29)
+You are helping develop a Slack-like chat application called ChattyG built with Next.js 13+ App Router, Supabase, and shadcn/ui. The app currently has:
+
+1. Basic chat functionality with:
+- Channel-based messaging
+- Real-time updates using Supabase subscriptions
+- Emoji reactions on messages (recently completed)
+- Message grouping by user and time
+- Markdown support in messages
+
+2. Core layout structure:
+- Sidebar with channel list
+- Main message area
+- User list panel
+- Top bar with channel info
+
+
+4. Current focus:
+- Implementing proper routing for channels (/chat/[channelId])
+- Maintaining the existing UI layout while adding route-based navigation
+- Keeping real-time functionality working across route changes
+
+5. Tech stack:
+- Next.js 13+ with App Router
+- Supabase for backend/real-time
+- shadcn/ui + Tailwind for UI
+- TypeScript throughout
+- React Server Components where possible
+
+The immediate goal is to refactor the routing while preserving the current functionality, especially the recently completed emoji reactions feature.
