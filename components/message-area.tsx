@@ -21,8 +21,12 @@ import Picker from '@emoji-mart/react'
 import { createClient } from '@/utils/supabase/client'
 import { UserDialog } from "@/components/user-dialog"
 import { FileUpload } from "./ui/file-upload"
+import { Inter, JetBrains_Mono } from 'next/font/google'
 
 const supabase = createClient()
+
+const inter = Inter({ subsets: ['latin'] })
+const jetbrains = JetBrains_Mono({ subsets: ['latin'] })
 
 interface MessageGroup {
   profileId: string
@@ -230,15 +234,15 @@ export function MessageArea({ channelId }: { channelId: string }) {
   }, [])
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={`flex flex-col h-full bg-gray-900 ${inter.className}`}>
       {/* Messages area with scroll */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
           <div className="text-gray-400">No messages yet</div>
         ) : (
           messageGroups.map((group, groupIndex) => (
             <div key={group.messages[0].id} className="group">
-              <div className="flex items-start gap-3 hover:bg-gray-800/30 px-2 py-1 rounded">
+              <div className="flex items-start gap-4 hover:bg-gray-800/40 px-4 py-3 rounded-lg transition-colors duration-200">
                 <Avatar className="h-10 w-10 mt-1">
                   <AvatarImage src={group.avatarUrl || ''} />
                   <AvatarFallback className="bg-gray-700 text-gray-300">
@@ -257,7 +261,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
                         });
                         setDialogOpen(true);
                       }}
-                      className="font-semibold text-gray-200 hover:underline"
+                      className="font-medium text-blue-300 hover:text-blue-200 transition-colors"
                     >
                       {group.displayName || 'Anonymous'}
                     </button>
@@ -290,7 +294,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
                               // Customize markdown components
                               strong: ({node, ...props}) => <span className="font-bold" {...props} />,
                               em: ({node, ...props}) => <span className="italic" {...props} />,
-                              code: ({node, ...props}) => <code className="bg-gray-800 px-1 rounded" {...props} />,
+                              code: ({node, ...props}) => <code className={`${jetbrains.className} bg-gray-800/50 px-2 py-0.5 rounded text-blue-200`} {...props} />,
                             }}
                           >
                             {message.content}
@@ -322,7 +326,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <button 
-                                  className="p-1 hover:bg-gray-600 rounded-full"
+                                  className="p-2 hover:bg-gray-700/50 rounded-full transition-colors duration-200"
                                   onClick={() => setShowEmojiPicker(message.id)}
                                 >
                                   <Smile className="w-4 h-4" />
@@ -346,7 +350,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
                             </Popover>
 
                             <button 
-                              className="p-1 hover:bg-gray-600 rounded-full"
+                              className="p-2 hover:bg-gray-700/50 rounded-full transition-colors duration-200"
                               onClick={() => handleReply(message.id)}
                             >
                               <Reply className="w-4 h-4" />
@@ -361,11 +365,11 @@ export function MessageArea({ channelId }: { channelId: string }) {
                             <button
                               key={reaction.emoji}
                               onClick={() => handleEmojiSelect(message.id, reaction.emoji)}
-                              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-sm 
+                              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm 
                                 ${reaction.reacted 
-                                  ? 'bg-blue-500/50 hover:bg-blue-500/40' 
-                                  : 'bg-gray-700/50 hover:bg-gray-600/50'
-                                } transition-colors`}
+                                  ? 'bg-blue-500/30 hover:bg-blue-500/40 text-blue-100' 
+                                  : 'bg-gray-700/40 hover:bg-gray-600/40 text-gray-200'
+                                } transition-all duration-200 shadow-sm`}
                             >
                               <span>{reaction.emoji}</span>
                               <span className="text-xs text-gray-400">{reaction.count}</span>
@@ -398,8 +402,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
       />
 
       {/* Message input */}
-      <div className="p-4 border-t border-gray-700">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4">
+      <div className="p-6 border-t border-gray-800 bg-gray-900/50">
+        <form onSubmit={handleSubmit} className="flex items-center gap-3 p-4 bg-gray-800/30 rounded-lg shadow-lg">
           <FileUpload
             onUploadComplete={(url, type, name, size) => {
               console.log("Setting attachment:", { url, type, name, size }); // Debug log
@@ -428,14 +432,18 @@ export function MessageArea({ channelId }: { channelId: string }) {
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               placeholder="Type a message..."
-              className="w-full bg-gray-700/50 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-700/30 text-white rounded-lg px-4 py-2.5 
+                focus:outline-none focus:ring-2 focus:ring-blue-500/50 
+                placeholder-gray-400 transition-all duration-200"
             />
           </div>
 
           <button
             type="submit"
             disabled={!messageInput.trim() && !attachment}
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+              transition-colors duration-200 disabled:opacity-50 
+              disabled:cursor-not-allowed shadow-md"
           >
             <Send className="w-5 h-5" />
           </button>

@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { inter } from "@/lib/fonts";
 
 interface MessageGroup {
   senderId: string;
@@ -75,9 +76,8 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages area with scroll */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className={`flex flex-col h-full bg-gray-900 ${inter.className}`}>
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
           <div className="text-gray-400">No messages yet</div>
         ) : (
@@ -140,20 +140,23 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
         )}
       </div>
 
-      {/* Message input */}
-      <div className="p-4 border-t border-gray-700">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+      <div className="p-6 border-t border-gray-800 bg-gray-900/50">
+        <form onSubmit={handleSubmit} className="flex items-center gap-3 p-4 bg-gray-800/30 rounded-lg shadow-lg">
           <input
             type="text"
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
             placeholder="Send a direct message..."
-            className="flex-1 bg-gray-700/50 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 bg-gray-700/30 text-white rounded-lg px-4 py-2.5 
+              focus:outline-none focus:ring-2 focus:ring-blue-500/50 
+              placeholder-gray-400 transition-all duration-200"
           />
           <button
             type="submit"
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             disabled={!messageInput.trim()}
+            className="p-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
+              transition-colors duration-200 disabled:opacity-50 
+              disabled:cursor-not-allowed shadow-md"
           >
             <Send className="w-5 h-5" />
           </button>
