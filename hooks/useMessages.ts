@@ -26,6 +26,7 @@ interface Message {
   content: string
   created_at: string
   user_id: string
+  thread_count: number
   profiles: {
     display_name: string | null
   } | null
@@ -54,7 +55,8 @@ export function useMessages(channelId: string) {
             message_reactions (
               emoji,
               user_id
-            )
+            ),
+            thread_count
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })

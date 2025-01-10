@@ -33,4 +33,4 @@
   - Optimize images: use WebP format, include size data, implement lazy loading.
 
   Follow Next.js docs for Data Fetching, Rendering, and Routing.
-  
+  If you are running into issues with the database, consider whether it might be because of a missing foreign key relatioship between tables. 
