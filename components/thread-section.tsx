@@ -29,39 +29,13 @@ export function ThreadSection({ channelId, parentMessageId, onClose }: ThreadSec
   const [isLoading, setIsLoading] = useState(true)
   const [messageInput, setMessageInput] = useState('')
 
-  useEffect(() => {
-    fetchThreadMessages()
-
-    // Subscribe to new thread messages
-    const channel = supabase
-      .channel(`thread:${parentMessageId}`)
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'thread_messages',
-          filter: `parent_message_id=eq.${parentMessageId}`
-        },
-        () => {
-          fetchThreadMessages()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      channel.unsubscribe()
-    }
-  }, [parentMessageId])
-
   const fetchThreadMessages = async () => {
     try {
+      console.log('Fetching thread messages for:', parentMessageId)
       const { data, error } = await supabase
         .from('thread_messages')
         .select(`
-          id,
-          content,
-          created_at,
-          user_id,
+          *,
           profiles:user_id (
             display_name,
             avatar_url
@@ -72,6 +46,7 @@ export function ThreadSection({ channelId, parentMessageId, onClose }: ThreadSec
 
       if (error) throw error
 
+      console.log('Fetched thread messages:', data)
       setMessages(data || [])
     } catch (error) {
       console.error('Error fetching thread messages:', error)
@@ -79,6 +54,32 @@ export function ThreadSection({ channelId, parentMessageId, onClose }: ThreadSec
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchThreadMessages()
+
+    // Subscribe to new thread messages
+    const channel = supabase
+      .channel(`thread:${parentMessageId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'thread_messages',
+          filter: `parent_message_id=eq.${parentMessageId}`
+        },
+        (payload) => {
+          console.log('New thread message:', payload)
+          setMessages(current => [...current, payload.new as ThreadMessage])
+        }
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [parentMessageId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

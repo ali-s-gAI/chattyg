@@ -1,7 +1,9 @@
+'use client'
+
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { ThreadSection } from './thread-section'
-import { Reply } from 'lucide-react'
+import { Reply, ChevronRight } from 'lucide-react'
 
 interface MessageProps {
   message: {
@@ -31,17 +33,18 @@ export function Message({ message, channelId, displayName }: MessageProps) {
             className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition-opacity flex items-center gap-1 text-xs"
           >
             <Reply size={14} />
-            {message.thread_count > 0 && (
-              <span>{message.thread_count}</span>
-            )}
           </button>
         </div>
 
-        {message.thread_count > 0 && !isThreadOpen && (
+        {message.thread_count > 0 && (
           <button
-            onClick={() => setIsThreadOpen(true)}
-            className="text-xs text-gray-400 hover:text-white mt-1 flex items-center gap-1"
+            onClick={() => setIsThreadOpen(!isThreadOpen)}
+            className="flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-white"
           >
+            <ChevronRight 
+              size={14} 
+              className={`transform transition-transform ${isThreadOpen ? 'rotate-90' : ''}`}
+            />
             {message.thread_count} {message.thread_count === 1 ? 'reply' : 'replies'}
           </button>
         )}
