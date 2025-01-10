@@ -64,10 +64,7 @@ export function useDirectMessages(targetUserId: string) {
           schema: 'public',
           table: 'direct_messages'
         },
-        () => {
-          console.log('DM change detected, refetching...');
-          fetchMessages();
-        }
+        () => fetchMessages()
       )
       .subscribe();
 

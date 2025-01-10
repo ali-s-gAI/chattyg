@@ -19,6 +19,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "@uploadthing/react": "^7.1.5",
     "autoprefixer": "10.4.20",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -31,7 +32,8 @@
     "prettier": "^3.3.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-markdown": "^9.0.3"
+    "react-markdown": "^9.0.3",
+    "uploadthing": "^7.4.4"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.16",

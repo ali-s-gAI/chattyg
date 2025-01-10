@@ -33,9 +33,7 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
     if (!messageInput.trim()) return;
 
     try {
-      console.log("Attempting to send DM:", messageInput);
       await sendDM(messageInput);
-      console.log("DM sent successfully");
       setMessageInput("");
     } catch (error) {
       console.error("Failed to send message:", error);

@@ -1,5 +1,8 @@
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
+import { extractRouterConfig } from "uploadthing/server";
+import { ourFileRouter } from "./api/uploadthing/core";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -24,6 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full ${geistSans.className}`}>
       <body className="h-full w-full">
+        <NextSSRPlugin 
+          routerConfig={extractRouterConfig(ourFileRouter)}
+        />
         {children}
       </body>
     </html>
