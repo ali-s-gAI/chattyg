@@ -75,23 +75,44 @@ export function MessageArea({ channelId }: { channelId: string }) {
     name: string;
   } | null>(null)
   
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!messageInput.trim() && !attachment) return
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageInput.trim() && !attachment) return;
 
     try {
-      await sendMessage({
-        content: messageInput,
-        fileUrl: attachment?.url,
-        fileName: attachment?.name,
-        fileType: attachment?.type,
-      })
-      setMessageInput('')
-      setAttachment(null)
+      // Send the message first
+      const { data: message, error: messageError } = await supabase
+        .from('messages')
+        .insert([{
+          content: messageInput,
+          channel_id: channelId,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        }])
+        .select()
+        .single();
+
+      if (messageError) throw messageError;
+
+      // If there's an attachment, create the file attachment record
+      if (attachment) {
+        const { error: attachmentError } = await supabase
+          .from('file_attachments')
+          .insert([{
+            message_id: message.id,
+            file_url: attachment.url,
+            file_name: attachment.name,
+            file_type: attachment.type,
+          }]);
+
+        if (attachmentError) throw attachmentError;
+      }
+
+      setMessageInput("");
+      setAttachment(null);
     } catch (error) {
-      console.error('Failed to send message:', error)
+      console.error("Failed to send message:", error);
     }
-  }
+  };
 
   const handleEmojiSelect = async (messageId: string, emoji: string) => {
     try {

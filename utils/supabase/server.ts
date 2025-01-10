@@ -27,3 +27,10 @@ export const createClient = async () => {
     },
   );
 };
+
+export async function getSession() {
+  const cookieStore = cookies();
+  const supabase = createClient(cookieStore);
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+}
