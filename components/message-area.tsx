@@ -19,6 +19,7 @@ import {
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { createClient } from '@/utils/supabase/client'
+import { UserDialog } from "@/components/user-dialog"
 
 const supabase = createClient()
 
@@ -61,6 +62,12 @@ export function MessageArea({ channelId }: { channelId: string }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState<string | null>(null)
   const [isThreadOpen, setIsThreadOpen] = useState<string | null>(null)
   const [threadOpenForMessage, setThreadOpenForMessage] = useState<string | null>(null)
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string;
+    display_name: string | null;
+    avatar_url: string | null;
+  } | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -176,9 +183,19 @@ export function MessageArea({ channelId }: { channelId: string }) {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-200">
+                    <button
+                      onClick={() => {
+                        setSelectedUser({
+                          id: group.profileId,
+                          display_name: group.displayName,
+                          avatar_url: group.avatarUrl,
+                        });
+                        setDialogOpen(true);
+                      }}
+                      className="font-semibold text-gray-200 hover:underline"
+                    >
                       {group.displayName || 'Anonymous'}
-                    </span>
+                    </button>
                     <TooltipProvider delayDuration={200}>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -290,6 +307,13 @@ export function MessageArea({ channelId }: { channelId: string }) {
           ))
         )}
       </div>
+
+      {/* Add the dialog */}
+      <UserDialog 
+        user={selectedUser}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
 
       {/* Message input */}
       <div className="p-4 border-t border-gray-700">
