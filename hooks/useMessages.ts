@@ -53,12 +53,16 @@ export function useMessages(channelId: string) {
           .from('messages')
           .select(`
             *,
-            profiles (display_name),
-            message_reactions (
-              emoji,
-              user_id
+            profiles (
+              display_name,
+              avatar_url
             ),
-            thread_count
+            file_attachments (
+              file_url,
+              file_name,
+              file_type,
+              file_size
+            )
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })

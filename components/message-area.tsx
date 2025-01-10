@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import ReactMarkdown from 'react-markdown'
-import { Smile, Plus, Send, Reply } from 'lucide-react'
+import { Smile, Plus, Send, Reply, Paperclip } from 'lucide-react'
 import { useState, FormEvent } from 'react'
 import { ThreadSection } from '@/components/thread-section'
 import {
@@ -54,6 +54,12 @@ interface Message {
     avatar_url: string | null
   }
   reactions: any[]
+  file_attachments?: Array<{
+    file_url: string
+    file_name: string
+    file_type: string
+    file_size: number
+  }>
 }
 
 export function MessageArea({ channelId }: { channelId: string }) {
@@ -81,6 +87,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
     if (!messageInput.trim() && !attachment) return;
 
     try {
+      console.log("Submitting with attachment:", attachment); // Debug log
+
       // Send the message first
       const { data: message, error: messageError } = await supabase
         .from('messages')
@@ -96,16 +104,29 @@ export function MessageArea({ channelId }: { channelId: string }) {
 
       // If there's an attachment, create the file attachment record
       if (attachment) {
-        const { error: attachmentError } = await supabase
+        console.log("Creating file attachment with:", { // Debug log
+          message_id: message.id,
+          file_url: attachment.url,
+          file_name: attachment.name,
+          file_type: attachment.type,
+          file_size: attachment.size,
+          created_by: (await supabase.auth.getUser()).data.user?.id
+        });
+
+        const { data: fileAttachment, error: attachmentError } = await supabase
           .from('file_attachments')
           .insert([{
             message_id: message.id,
             file_url: attachment.url,
             file_name: attachment.name,
             file_type: attachment.type,
-            file_size: attachment.size || 0,
+            file_size: attachment.size,
             created_by: (await supabase.auth.getUser()).data.user?.id
-          }]);
+          }])
+          .select()
+          .single();
+
+        console.log("File attachment result:", { fileAttachment, attachmentError }); // Debug log
 
         if (attachmentError) throw attachmentError;
       }
@@ -266,6 +287,23 @@ export function MessageArea({ channelId }: { channelId: string }) {
                           >
                             {message.content}
                           </ReactMarkdown>
+                          
+                          {message.file_attachments?.map((file) => (
+                            <div key={file.file_url} className="mt-2">
+                              <a
+                                href={file.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300"
+                              >
+                                <Paperclip className="h-4 w-4" />
+                                <span className="truncate">{file.file_name}</span>
+                                <span className="text-gray-500 text-xs">
+                                  ({Math.round(file.file_size / 1024)}KB)
+                                </span>
+                              </a>
+                            </div>
+                          ))}
                         </div>
                         
                         {/* Reaction and Reply buttons */}
@@ -355,8 +393,9 @@ export function MessageArea({ channelId }: { channelId: string }) {
       <div className="p-4 border-t border-gray-700">
         <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4">
           <FileUpload
-            onUploadComplete={(url, type, name) => {
-              setAttachment({ url, type, name });
+            onUploadComplete={(url, type, name, size) => {
+              console.log("Setting attachment:", { url, type, name, size }); // Debug log
+              setAttachment({ url, type, name, size });
             }}
             onUploadError={(error) => {
               console.error("Upload failed:", error);
