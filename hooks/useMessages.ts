@@ -45,6 +45,26 @@ interface Message {
   }>
 }
 
+function processReactions(reactions: any[] = []) {
+  if (!reactions) return [];
+  
+  // Group reactions by emoji
+  const groupedReactions = reactions.reduce((acc: { [key: string]: any }, reaction) => {
+    if (!acc[reaction.emoji]) {
+      acc[reaction.emoji] = {
+        emoji: reaction.emoji,
+        count: 0,
+        reacted: false
+      }
+    }
+    acc[reaction.emoji].count++
+    return acc
+  }, {})
+
+  // Convert to array format
+  return Object.values(groupedReactions)
+}
+
 export function useMessages(channelId: string) {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,14 +86,15 @@ export function useMessages(channelId: string) {
               file_name,
               file_type,
               file_size
+            ),
+            message_reactions (
+              emoji,
+              user_id
             )
           `)
           .eq('channel_id', channelId)
           .order('created_at', { ascending: true })
 
-        // Debug log 1: Raw data from Supabase
-        console.log('Raw Supabase data:', JSON.stringify(messagesData?.[0], null, 2))
-        
         if (error) throw error
 
         const processedMessages = messagesData.map(message => ({
@@ -81,10 +102,6 @@ export function useMessages(channelId: string) {
           reactions: processReactions(message.message_reactions),
           file_attachments: message.file_attachments || []
         }))
-
-        // Debug log 2: Processed message with attachments
-        console.log('Processed message with attachments:', 
-          JSON.stringify(processedMessages[processedMessages.length - 1], null, 2))
 
         setMessages(processedMessages)
         setLoading(false)
