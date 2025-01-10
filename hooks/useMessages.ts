@@ -119,22 +119,7 @@ export function useMessages(channelId: string) {
 
     fetchMessages()
 
-    // Update the subscription to handle all message_reactions changes
-    const subscription = supabase
-      .channel('message_reactions_changes')
-      .on('postgres_changes', 
-        {
-          event: '*',
-          schema: 'public',
-          table: 'message_reactions',
-        },
-        () => {
-          fetchMessages() // Refetch messages when reactions change
-        }
-      )
-      .subscribe()
-
-    // Also subscribe to message changes
+    // Existing subscriptions
     const messageSubscription = supabase
       .channel('messages_changes')
       .on('postgres_changes',
@@ -144,15 +129,26 @@ export function useMessages(channelId: string) {
           table: 'messages',
           filter: `channel_id=eq.${channelId}`
         },
-        () => {
-          fetchMessages()
-        }
+        () => fetchMessages()
+      )
+      .subscribe()
+
+    // Add new subscription for file_attachments
+    const attachmentsSubscription = supabase
+      .channel('file_attachments_changes')
+      .on('postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'file_attachments'
+        },
+        () => fetchMessages()
       )
       .subscribe()
 
     return () => {
-      subscription.unsubscribe()
       messageSubscription.unsubscribe()
+      attachmentsSubscription.unsubscribe()
     }
   }, [channelId])
 
