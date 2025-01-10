@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Settings } from 'lucide-react'
+import { Settings, LogOut } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { CreateChannelModal } from '@/components/create-channel-modal'
+import { SignOutButton } from '@/components/sign-out-button'
 
 export function Sidebar({ channels }: { channels: Array<{ id: string; name: string }> }) {
   const pathname = usePathname()
@@ -44,7 +45,8 @@ export function Sidebar({ channels }: { channels: Array<{ id: string; name: stri
         </ul>
       </div>
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 space-y-2">
+        <SignOutButton />
         <Link 
           href="/settings/account" 
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors p-2 rounded-md hover:bg-gray-700/50"

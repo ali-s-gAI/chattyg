@@ -1,7 +1,6 @@
 'use client'
 
 import { createClient } from '@/utils/supabase/client'
-import { updateUserLastSeen } from '@/utils/user-status'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
@@ -12,7 +11,17 @@ export function SignOutButton() {
   const router = useRouter()
 
   const handleSignOut = async () => {
-    await updateUserLastSeen() // Update last seen before signing out
+    // Set last_seen to 10 minutes ago (outside our 5-minute window)
+    const tenMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+    
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user.id) {
+      await supabase
+        .from('profiles')
+        .update({ last_seen: tenMinutesAgo })
+        .eq('id', session.user.id)
+    }
+
     await supabase.auth.signOut()
     router.push('/auth-pages/sign-in')
   }
