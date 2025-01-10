@@ -20,6 +20,7 @@ import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 import { createClient } from '@/utils/supabase/client'
 import { UserDialog } from "@/components/user-dialog"
+import { FileUpload } from "./ui/file-upload"
 
 const supabase = createClient()
 
@@ -68,14 +69,25 @@ export function MessageArea({ channelId }: { channelId: string }) {
     avatar_url: string | null;
   } | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    type: string;
+    name: string;
+  } | null>(null)
   
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!messageInput.trim()) return
+    if (!messageInput.trim() && !attachment) return
 
     try {
-      await sendMessage(messageInput)
+      await sendMessage({
+        content: messageInput,
+        fileUrl: attachment?.url,
+        fileName: attachment?.name,
+        fileType: attachment?.type,
+      })
       setMessageInput('')
+      setAttachment(null)
     } catch (error) {
       console.error('Failed to send message:', error)
     }
@@ -317,18 +329,42 @@ export function MessageArea({ channelId }: { channelId: string }) {
 
       {/* Message input */}
       <div className="p-4 border-t border-gray-700">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 bg-gray-700/50 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 p-4">
+          <FileUpload
+            onUploadComplete={(url, type, name) => {
+              setAttachment({ url, type, name });
+            }}
+            onUploadError={(error) => {
+              console.error("Upload failed:", error);
+            }}
           />
+          
+          <div className="flex-1 relative">
+            {attachment && (
+              <div className="absolute -top-8 left-0 bg-gray-700 rounded px-2 py-1 text-sm flex items-center gap-2">
+                <span className="truncate max-w-[200px]">{attachment.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setAttachment(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            <input
+              type="text"
+              value={messageInput}
+              onChange={(e) => setMessageInput(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full bg-gray-700/50 text-white rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           <button
             type="submit"
-            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            disabled={!messageInput.trim()}
+            disabled={!messageInput.trim() && !attachment}
+            className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-5 h-5" />
           </button>
