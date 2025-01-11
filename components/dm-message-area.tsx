@@ -4,7 +4,7 @@ import { useDirectMessages } from "@/hooks/useDirectMessages";
 import { formatDistanceToNow, differenceInMinutes, format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send } from "lucide-react";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import {
   Tooltip,
@@ -28,8 +28,18 @@ interface MessageGroup {
 }
 
 export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const { messages, loading, sendDM } = useDirectMessages(targetUserId);
   const [messageInput, setMessageInput] = useState("");
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // Scroll when new messages arrive
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -140,6 +150,7 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
             </div>
           ))
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-6 border-t border-gray-800 bg-gray-900/50">
