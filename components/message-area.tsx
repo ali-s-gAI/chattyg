@@ -244,8 +244,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
   }, [])
 
   return (
-    <div className={`flex flex-col h-full bg-gray-900 ${inter.className}`}>
-      {/* Messages area with scroll */}
+    <div className="flex flex-col h-full overflow-hidden">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
           <div className="text-gray-400">No messages yet</div>

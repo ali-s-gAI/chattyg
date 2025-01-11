@@ -23,15 +23,18 @@ export default async function ChatLayout({
     .order('created_at', { ascending: true })
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
+    <div className="h-screen flex flex-col overflow-hidden">
       <Header />
-      <div className="flex flex-1">
-        <nav className="w-64 border-r border-gray-800">
+      <div className="flex flex-1 overflow-hidden">
+        <nav className="w-64 flex-shrink-0 border-r border-gray-800">
           <Sidebar channels={channels} />
         </nav>
-        <main className="flex-1">
+        <main className="flex-1 flex overflow-hidden">
           {children}
         </main>
+        <aside className="w-64 flex-shrink-0 border-l border-gray-800">
+          <UserList />
+        </aside>
       </div>
     </div>
   )

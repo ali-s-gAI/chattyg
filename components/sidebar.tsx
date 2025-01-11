@@ -21,9 +21,9 @@ export function Sidebar({ channels }: { channels: Array<{ id: string; name: stri
   }
 
   return (
-    <div className={`flex flex-col h-full bg-gray-900/50 p-4 border-r border-gray-800 ${inter.className}`}>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-100">Channels</h2>
+    <div className="flex flex-col h-full">
+      <div className="p-4">
+        <h2 className="text-xl font-semibold">Channels</h2>
         <button 
           onClick={() => setIsCreateModalOpen(true)} 
           className="p-2 hover:bg-gray-700/50 rounded-full transition-colors duration-200 text-gray-400 hover:text-white"

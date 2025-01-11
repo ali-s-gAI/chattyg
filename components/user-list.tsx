@@ -56,21 +56,25 @@ export function UserList() {
   }, [])
 
   return (
-    <div className={`p-4 bg-gray-900/50 border-l border-gray-800 ${inter.className}`}>
-      <h2 className="text-xl font-semibold mb-6 text-gray-100">Users</h2>
-      <div className="space-y-2">
-        {users.map(user => (
-          <div key={user.id} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700/50 transition-colors duration-200">
-            <div 
-              className={`w-2.5 h-2.5 rounded-full ${
-                isOnline(user.last_seen) 
-                  ? 'bg-green-500 shadow-sm shadow-green-500/50' 
-                  : 'bg-gray-500'
-              }`}
-            />
-            <span className="text-gray-200">{user.display_name || 'Anonymous'}</span>
-          </div>
-        ))}
+    <div className="h-full flex flex-col">
+      <div className="p-4">
+        <h2 className="text-xl font-semibold">Users</h2>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="space-y-2">
+          {users.map(user => (
+            <div key={user.id} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-700/50 transition-colors duration-200">
+              <div 
+                className={`w-2.5 h-2.5 rounded-full ${
+                  isOnline(user.last_seen) 
+                    ? 'bg-green-500 shadow-sm shadow-green-500/50' 
+                    : 'bg-gray-500'
+                }`}
+              />
+              <span className="text-gray-200">{user.display_name || 'Anonymous'}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

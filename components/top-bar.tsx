@@ -1,6 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import { Search } from 'lucide-react'
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 type TopBarProps = {
   channel?: {
@@ -14,42 +17,34 @@ type TopBarProps = {
 export function TopBar({ channel }: TopBarProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchQuery)
+    // We'll implement this next
   }
 
   return (
-    <div className="flex items-center justify-between w-full px-4">
+    <div className="flex items-center justify-between w-full">
       <h2 className="text-xl font-semibold">
         #{channel ? channel.name : 'Select a channel'}
       </h2>
-      <div className="ml-auto">
+      <div className="flex items-center gap-2">
         <form onSubmit={handleSearch} className="relative">
-          <input
+          <Input
             type="search"
-            placeholder="Search"
+            placeholder="Search messages..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8 pr-2 py-1 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className="w-[200px] bg-gray-800/50 border-gray-700 text-gray-100 
+              placeholder:text-gray-400 focus:ring-blue-500/50"
           />
-          <svg
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400"
-            width="20"
-            height="20"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+          <Button 
+            type="submit" 
+            size="icon"
+            variant="ghost" 
+            className="absolute right-1 top-1/2 -translate-y-1/2"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            ></path>
-          </svg>
+            <Search className="h-4 w-4" />
+          </Button>
         </form>
       </div>
     </div>
