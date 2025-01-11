@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator"
 import ReactMarkdown from 'react-markdown'
 import { Smile, Plus, Send, Reply, Paperclip } from 'lucide-react'
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useRef, useEffect } from 'react'
 import { ThreadSection } from '@/components/thread-section'
 import {
   Tooltip,
@@ -73,6 +73,7 @@ interface Message {
 }
 
 export function MessageArea({ channelId }: { channelId: string }) {
+  const messagesEndRef = useRef<HTMLDivElement>(null)
   const { messages, loading, sendMessage } = useMessages(channelId)
   const [messageInput, setMessageInput] = useState('')
   const [showReactions, setShowReactions] = useState<string | null>(null)
@@ -192,6 +193,15 @@ export function MessageArea({ channelId }: { channelId: string }) {
   const handleReply = async (messageId: string) => {
     setThreadOpenForMessage(messageId)
   }
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  // Scroll when new messages arrive
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
   if (loading) {
     return <div className="p-4">Loading messages...</div>
@@ -392,6 +402,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
             </div>
           ))
         )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Add the dialog */}
