@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/sidebar'
 import { UserList } from '@/components/user-list'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { Header } from '@/components/header'
 
 export default async function ChatLayout({
   children,
@@ -22,14 +23,16 @@ export default async function ChatLayout({
     .order('created_at', { ascending: true })
 
   return (
-    <div className="flex h-screen bg-white">
-      <div className="w-[240px] flex-shrink-0 bg-[#1E2124] text-white border-r border-gray-700">
-        <Sidebar channels={channels || []} />
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
+      <Header />
+      <div className="flex flex-1">
+        <nav className="w-64 border-r border-gray-800">
+          <Sidebar channels={channels} />
+        </nav>
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
-      <div className="w-[240px] flex-shrink-0 bg-[#282B30] text-gray-300 border-r border-gray-700">
-        <UserList />
-      </div>
-      {children}
     </div>
   )
 }
