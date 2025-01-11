@@ -3,6 +3,7 @@ import "./globals.css";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
 import { extractRouterConfig } from "uploadthing/server";
 import { ourFileRouter } from "./api/uploadthing/core";
+import { ThemeProvider } from "@/components/theme-provider"
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -25,12 +26,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`h-full ${geistSans.className}`}>
+    <html lang="en" className={`h-full ${geistSans.className}`} suppressHydrationWarning>
+      <head />
       <body className="h-full w-full">
-        <NextSSRPlugin 
-          routerConfig={extractRouterConfig(ourFileRouter)}
-        />
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <NextSSRPlugin 
+            routerConfig={extractRouterConfig(ourFileRouter)}
+          />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )
