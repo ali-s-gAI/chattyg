@@ -1,68 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Light mode - using ChattyG logo colors */
+    --background: 210 65% 72%; /* Light blue from logo */
+    --foreground: 222 27% 14%; /* Dark blue text */
     
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --chat-background: 0 0% 100%; /* White */
+    --chat-foreground: 222 27% 14%; /* Dark blue text */
     
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --card: 210 65% 72%; /* Light blue */
+    --card-foreground: 222 27% 14%;
     
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --popover: 210 65% 72%;
+    --popover-foreground: 222 27% 14%;
     
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --primary: 16 100% 58%; /* Orange from logo */
+    --primary-foreground: 0 0% 100%;
     
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --secondary: 222 27% 14%; /* Dark blue from logo */
+    --secondary-foreground: 210 65% 72%;
     
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 222 27% 14%;
     
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 16 100% 58%; /* Orange */
+    --accent-foreground: 0 0% 100%;
     
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 210 65% 82%;
+    --input: 210 65% 82%;
+    --ring: 222 27% 14%;
     
     --radius: 0.5rem;
   }
   
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode - modern dark theme */
+    --background: 222 27% 14%; /* Dark blue from logo */
+    --foreground: 210 65% 72%; /* Light blue text */
     
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --chat-background: 223 27% 18%; /* Slightly lighter dark blue */
+    --chat-foreground: 0 0% 100%;
     
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --card: 222 27% 14%;
+    --card-foreground: 210 65% 72%;
     
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --popover: 222 27% 14%;
+    --popover-foreground: 210 65% 72%;
     
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 16 100% 58%; /* Orange from logo */
+    --primary-foreground: 0 0% 100%;
     
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --secondary: 210 65% 72%; /* Light blue */
+    --secondary-foreground: 222 27% 14%;
     
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 223 27% 22%;
+    --muted-foreground: 210 65% 72%;
     
-    --destructive: 0 62.8% 30.6%;
+    --accent: 16 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
     
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 223 27% 22%;
+    --input: 223 27% 22%;
+    --ring: 210 65% 72%;
   }
 }
 
@@ -71,6 +81,73 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-[Poppins] antialiased;
+  }
+  .chat-area {
+    @apply bg-[hsl(var(--chat-background))] text-[hsl(var(--chat-foreground))] shadow-lg;
+  }
+  .empty-state {
+    @apply flex items-center justify-center h-full bg-[hsl(var(--chat-background))] 
+           text-[hsl(var(--chat-foreground))] text-lg font-medium;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-[Poppins] font-semibold;
+  }
+}
+
+/* Refined button styles */
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 
+           rounded-md px-4 py-2 font-[Poppins] font-semibold transition-colors
+           shadow-md hover:shadow-lg focus:outline-none focus:ring-2 
+           focus:ring-primary/50 focus:ring-offset-2 
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80
+           rounded-md px-4 py-2 font-[Poppins] font-semibold transition-colors
+           shadow-md hover:shadow-lg focus:outline-none focus:ring-2
+           focus:ring-secondary/50 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}
+
+/* Font utility classes */
+@layer utilities {
+  .text-thin {
+    @apply font-[Poppins] font-thin;
+  }
+  .text-extralight {
+    @apply font-[Poppins] font-extralight;
+  }
+  .text-light {
+    @apply font-[Poppins] font-light;
+  }
+  .text-regular {
+    @apply font-[Poppins] font-normal;
+  }
+  .text-medium {
+    @apply font-[Poppins] font-medium;
+  }
+  .text-semibold {
+    @apply font-[Poppins] font-semibold;
+  }
+  .text-bold {
+    @apply font-[Poppins] font-bold;
+  }
+  .text-extrabold {
+    @apply font-[Poppins] font-extrabold;
+  }
+  .text-black {
+    @apply font-[Poppins] font-black;
+  }
+}
+
+@layer components {
+  .highlight-message {
+    @apply bg-primary/10 transition-colors duration-300;
   }
 }

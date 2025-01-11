@@ -22,6 +22,7 @@ import { createClient } from '@/utils/supabase/client'
 import { UserDialog } from "@/components/user-dialog"
 import { FileUpload } from "./ui/file-upload"
 import { Inter, JetBrains_Mono } from 'next/font/google'
+import { useSearchParams } from 'next/navigation'
 
 const supabase = createClient()
 
@@ -74,6 +75,8 @@ interface Message {
 
 export function MessageArea({ channelId }: { channelId: string }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messageRefs = useRef<{[key: string]: HTMLDivElement}>({})
+  const searchParams = useSearchParams()
   const { messages, loading, sendMessage } = useMessages(channelId)
   const [messageInput, setMessageInput] = useState('')
   const [showReactions, setShowReactions] = useState<string | null>(null)
@@ -92,6 +95,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
     name: string;
     size: number;
   } | null>(null)
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,6 +207,28 @@ export function MessageArea({ channelId }: { channelId: string }) {
     scrollToBottom()
   }, [messages])
 
+  useEffect(() => {
+    const messageId = searchParams.get('messageId')
+    if (messageId && messageRefs.current[messageId]) {
+      messageRefs.current[messageId].scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+      // Optional: Add highlight effect
+      messageRefs.current[messageId].classList.add('highlight-message')
+      setTimeout(() => {
+        messageRefs.current[messageId].classList.remove('highlight-message')
+      }, 3000)
+    }
+  }, [searchParams])
+
+  // Auto-scroll effect
+  useEffect(() => {
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [messages, shouldAutoScroll])
+
   if (loading) {
     return <div className="p-4">Loading messages...</div>
   }
@@ -244,7 +270,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
   }, [])
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full chat-area">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.length === 0 ? (
           <div className="text-gray-400">No messages yet</div>

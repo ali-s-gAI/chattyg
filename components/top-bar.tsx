@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Loader2, Hash, User, Paperclip, MessageSquare } from 'lucide-react'
+import { Search, Loader2, Hash, User, Paperclip, MessageSquare, X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useSearch } from '@/hooks/useSearch'
@@ -41,9 +41,16 @@ export function TopBar({ channel }: TopBarProps) {
     if (result.url) {
       router.push(result.url)
     } else if (result.channelId) {
-      router.push(`/chat/${result.channelId}`)
-      // TODO: Implement scrolling to specific message
+      if (result.messageId) {
+        router.push(`/chat/${result.channelId}?messageId=${result.messageId}`)
+      } else {
+        router.push(`/chat/${result.channelId}`)
+      }
     }
+  }
+
+  const clearSearch = () => {
+    setSearchQuery('')
   }
 
   return (
@@ -53,28 +60,43 @@ export function TopBar({ channel }: TopBarProps) {
           #{channel ? channel.name : 'Select a channel'}
         </h2>
         <div className="flex items-center gap-2">
-          <form onSubmit={handleSearch} className="relative">
-            <Input
-              type="search"
-              placeholder="Search everything..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-[300px] bg-gray-800/50 border-gray-700 text-gray-100 
-                placeholder:text-gray-400 focus:ring-blue-500/50"
-            />
-            <Button 
-              type="submit" 
-              size="icon"
-              variant="ghost" 
-              className="absolute right-1 top-1/2 -translate-y-1/2"
-              disabled={isSearching}
-            >
-              {isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4" />
-              )}
-            </Button>
+          <form onSubmit={handleSearch} className="relative flex items-center">
+            <div className="relative flex-1">
+              <Input
+                type="search"
+                placeholder="Search messages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-[300px] pr-20 bg-gray-800/50 border-gray-700 
+                  text-gray-100 placeholder:text-gray-400"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {searchQuery && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6"
+                    onClick={clearSearch}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button 
+                  type="submit" 
+                  size="icon"
+                  variant="ghost" 
+                  className="h-6 w-6"
+                  disabled={isSearching}
+                >
+                  {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
           </form>
         </div>
       </div>

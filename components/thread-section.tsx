@@ -15,7 +15,7 @@ interface ThreadMessage {
   profiles: {
     display_name: string | null
     avatar_url: string | null
-  }
+  } | null
 }
 
 interface ThreadSectionProps {
@@ -27,58 +27,100 @@ interface ThreadSectionProps {
 export function ThreadSection({ channelId, parentMessageId, onClose }: ThreadSectionProps) {
   const [messages, setMessages] = useState<ThreadMessage[]>([])
   const [messageInput, setMessageInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const fetchThreadMessages = async () => {
-    const { data, error } = await supabase
-      .from('thread_messages')
-      .select(`
-        id,
-        content,
-        created_at,
-        user_id,
-        auth.users!thread_messages_user_id_fkey (
-          id,
-          profiles (
-            display_name,
-            avatar_url
-          )
-        )
-      `)
-      .eq('parent_message_id', parentMessageId)
-      .order('created_at', { ascending: true })
+    try {
+      console.log('Fetching thread messages for parent:', parentMessageId)
+      
+      // First get the thread messages
+      const { data: threadMessages, error: threadError } = await supabase
+        .from('thread_messages')
+        .select('*')
+        .eq('parent_message_id', parentMessageId)
+        .order('created_at', { ascending: true })
 
-    if (error) {
-      console.error('Fetch error:', error)
-      return
+      if (threadError) {
+        console.error('Thread messages fetch error:', threadError)
+        return
+      }
+
+      if (!threadMessages?.length) {
+        setMessages([])
+        return
+      }
+
+      // Then get the profiles for these messages
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url')
+        .in('id', threadMessages.map(msg => msg.user_id))
+
+      if (profilesError) {
+        console.error('Profiles fetch error:', profilesError)
+        return
+      }
+
+      // Combine the data
+      const messagesWithProfiles = threadMessages.map(message => ({
+        ...message,
+        profiles: profilesData?.find(profile => profile.id === message.user_id) || null
+      }))
+
+      console.log('Combined messages with profiles:', messagesWithProfiles)
+      setMessages(messagesWithProfiles)
+    } catch (error) {
+      console.error('Catch block error:', error)
     }
-
-    console.log('Fetched messages:', data)
-    setMessages(data || [])
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!messageInput.trim()) return
+    if (!messageInput.trim() || isLoading) return
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) return
+    setIsLoading(true)
 
-    const { error } = await supabase
-      .from('thread_messages')
-      .insert({
-        content: messageInput.trim(),
-        channel_id: channelId,
-        parent_message_id: parentMessageId,
-        user_id: session.user.id
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        console.error('No session found')
+        return
+      }
+
+      // First, increment the thread_count of the parent message
+      const { error: updateError } = await supabase.rpc('increment_thread_count', {
+        message_id: parentMessageId
       })
 
-    if (error) {
-      console.error('Send error:', error)
-      return
-    }
+      if (updateError) {
+        console.error('Error updating thread count:', updateError)
+        return
+      }
 
-    setMessageInput('')
-    fetchThreadMessages()
+      // Then insert the thread message
+      const { error: insertError } = await supabase
+        .from('thread_messages')
+        .insert({
+          content: messageInput.trim(),
+          channel_id: channelId,
+          parent_message_id: parentMessageId,
+          user_id: session.user.id,
+          is_edited: false,
+          reactions: {}
+        })
+
+      if (insertError) {
+        console.error('Send error:', insertError)
+        return
+      }
+
+      setMessageInput('')
+      await fetchThreadMessages()
+    } catch (error) {
+      console.error('Error sending message:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -141,7 +183,7 @@ export function ThreadSection({ channelId, parentMessageId, onClose }: ThreadSec
           <button
             type="submit"
             className="p-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-            disabled={!messageInput.trim()}
+            disabled={!messageInput.trim() || isLoading}
           >
             <Send className="w-5 h-5" />
           </button>

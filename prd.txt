@@ -71,6 +71,31 @@ Risk: File storage costs can increase with scale.
 Mitigation: Consider cloud storage (e.g., AWS S3) or limit file sizes initially.
 Assumption: MVP user base will be small, so a single-server setup might suffice in the beginning.
 Assumption: Future AI features will require a separate service or integration with cloud-based APIs.
+Risk: Supabase foreign key relationships can cause join issues, especially with auth.users table
+Mitigation: 
+- Always verify foreign key relationships before implementing joins
+- Use proper join paths (auth.users -> profiles) in queries
+- Document the correct join patterns for common operations
+- Test queries in SQL editor before implementing in code
+- Use this diagnostic query to verify foreign key relationships:
+  ```sql
+  SELECT tc.constraint_name, 
+         kcu.column_name, 
+         ccu.table_name AS foreign_table_name,
+         ccu.column_name AS foreign_column_name
+  FROM information_schema.table_constraints AS tc 
+  JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+  JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+  WHERE tc.table_name = '<table_name>' 
+    AND tc.constraint_type = 'FOREIGN KEY';
+  ```
+
+Common Error Patterns:
+- 400 errors often indicate join path issues
+- Empty error objects ({}) usually mean permission issues
+- Always check RLS policies when joins fail
 6. Success Metrics (MVP)
 
 User adoption & engagement: Number of messages sent, channels created, files shared, etc.
