@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { ThreadSection } from './thread-section'
 import { Reply, ChevronRight, Paperclip } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface MessageProps {
   message: {
@@ -21,11 +22,17 @@ interface MessageProps {
   }
   channelId: string
   displayName?: string | null
+  onReplyClick: () => void
 }
 
-export function Message({ message, channelId, displayName }: MessageProps) {
+export function Message({ message, channelId, displayName, onReplyClick }: MessageProps) {
   console.log("Message data:", message);
   const [isThreadOpen, setIsThreadOpen] = useState(false)
+
+  const toggleThread = () => {
+    setIsThreadOpen(!isThreadOpen)
+    onReplyClick()
+  }
 
   return (
     <div>
@@ -53,25 +60,38 @@ export function Message({ message, channelId, displayName }: MessageProps) {
           {/* Your existing reactions UI here */}
           
           <button
-            onClick={() => setIsThreadOpen(true)}
+            onClick={onReplyClick}
             className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-white transition-opacity flex items-center gap-1 text-xs"
           >
             <Reply size={14} />
           </button>
         </div>
 
-        {message.thread_count > 0 && (
+        <div className="flex items-center gap-2 mt-2 text-sm text-gray-400">
+          {message.thread_count > 0 && (
+            <button
+              onClick={toggleThread}
+              className="flex items-center gap-1 hover:text-gray-200"
+            >
+              <ChevronRight 
+                className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  isThreadOpen && "rotate-90"
+                )}
+              />
+              <span>
+                {message.thread_count} {message.thread_count === 1 ? 'reply' : 'replies'}
+              </span>
+            </button>
+          )}
+          
           <button
-            onClick={() => setIsThreadOpen(!isThreadOpen)}
-            className="flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-white"
+            onClick={onReplyClick}
+            className="opacity-0 group-hover:opacity-100 hover:text-gray-200 transition-opacity"
           >
-            <ChevronRight 
-              size={14} 
-              className={`transform transition-transform ${isThreadOpen ? 'rotate-90' : ''}`}
-            />
-            {message.thread_count} {message.thread_count === 1 ? 'reply' : 'replies'}
+            Reply
           </button>
-        )}
+        </div>
       </div>
       
       {isThreadOpen && (

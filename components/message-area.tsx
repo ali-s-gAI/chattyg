@@ -96,7 +96,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
     size: number;
   } | null>(null)
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true)
-  
+  const [activeThread, setActiveThread] = useState<string | null>(null)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageInput.trim() && !attachment) return;
@@ -194,8 +195,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
     }
   }
 
-  const handleReply = async (messageId: string) => {
-    setThreadOpenForMessage(messageId)
+  const handleReplyClick = (messageId: string) => {
+    setActiveThread(activeId => activeId === messageId ? null : messageId)
   }
 
   const scrollToBottom = () => {
@@ -386,7 +387,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
 
                             <button 
                               className="p-2 hover:bg-gray-700/50 rounded-full transition-colors duration-200"
-                              onClick={() => handleReply(message.id)}
+                              onClick={() => handleReplyClick(message.id)}
                             >
                               <Reply className="w-4 h-4" />
                             </button>
@@ -412,11 +413,11 @@ export function MessageArea({ channelId }: { channelId: string }) {
                           ))}
                         </div>
 
-                        {threadOpenForMessage === message.id && (
-                          <ThreadSection 
+                        {activeThread === message.id && (
+                          <ThreadSection
                             channelId={channelId}
                             parentMessageId={message.id}
-                            onClose={() => setThreadOpenForMessage(null)}
+                            onClose={() => setActiveThread(null)}
                           />
                         )}
                       </div>
