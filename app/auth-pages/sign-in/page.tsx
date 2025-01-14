@@ -8,8 +8,12 @@ import Link from "next/link";
 export default function SignIn({
   searchParams,
 }: {
-  searchParams: Message
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
+  const message = Array.isArray(searchParams.message) 
+    ? searchParams.message[0] 
+    : searchParams.message;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
       <div className="w-full max-w-sm mx-auto p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
@@ -29,7 +33,9 @@ export default function SignIn({
             <SubmitButton formAction={signInAction} pendingText="Signing in...">
               Sign in
             </SubmitButton>
-            <FormMessage message={searchParams} />
+            {message && (
+              <FormMessage message={{ message }} />
+            )}
           </div>
         </form>
       </div>

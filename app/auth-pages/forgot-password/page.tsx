@@ -6,32 +6,36 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { SmtpMessage } from "../smtp-message";
 
-export default async function ForgotPassword(props: {
-  searchParams: Promise<Message>;
+export default function ForgotPassword({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const searchParams = await props.searchParams;
+  const message = Array.isArray(searchParams.message) 
+    ? searchParams.message[0] 
+    : searchParams.message;
+
   return (
-    <>
-      <form className="flex-1 flex flex-col w-full gap-2 text-foreground [&>input]:mb-6 min-w-64 max-w-64 mx-auto">
-        <div>
-          <h1 className="text-2xl font-medium">Reset Password</h1>
-          <p className="text-sm text-secondary-foreground">
-            Already have an account?{" "}
-            <Link className="text-primary underline" href="/sign-in">
-              Sign in
-            </Link>
+    <div className="flex min-h-screen items-center justify-center bg-gray-900">
+      <div className="w-full max-w-sm mx-auto p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
+        <form className="flex flex-col items-center w-full">
+          <h1 className="text-2xl font-semibold mb-6 text-white">Reset Password</h1>
+          <p className="text-sm text-gray-400 mb-8">
+            Enter your email to receive password reset instructions
           </p>
-        </div>
-        <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-          <Label htmlFor="email">Email</Label>
-          <Input name="email" placeholder="you@example.com" required />
-          <SubmitButton formAction={forgotPasswordAction}>
-            Reset Password
-          </SubmitButton>
-          <FormMessage message={searchParams} />
-        </div>
-      </form>
-      <SmtpMessage />
-    </>
-  );
+          <div className="w-full space-y-4">
+            <Label htmlFor="email">Email</Label>
+            <Input name="email" placeholder="you@example.com" required />
+            <SubmitButton formAction={forgotPasswordAction}>
+              Reset Password
+            </SubmitButton>
+            {message && (
+              <FormMessage message={{ message }} />
+            )}
+          </div>
+        </form>
+        <SmtpMessage />
+      </div>
+    </div>
+  )
 }
