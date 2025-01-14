@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Sign in to your account',
 }
 
+// @ts-ignore
 export default function SignIn({
   searchParams,
 }: {

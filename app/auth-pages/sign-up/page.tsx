@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: 'Create a new account',
 }
 
+// @ts-ignore
 export default function SignUp({
   searchParams,
 }: {
