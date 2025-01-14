@@ -1,19 +1,26 @@
 import { signUpAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
+import { FormMessage } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { SmtpMessage } from "../smtp-message";
+import { Metadata } from "next";
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+export const metadata: Metadata = {
+  title: 'Sign Up',
+  description: 'Create a new account',
 }
 
-export default async function SignUp({ searchParams }: PageProps) {
-  const message = Array.isArray(searchParams.message) 
-    ? searchParams.message[0] 
-    : searchParams.message;
+export default function SignUp({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined }
+}) {
+  const message = searchParams?.message 
+    ? Array.isArray(searchParams.message)
+      ? searchParams.message[0]
+      : searchParams.message
+    : null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
@@ -41,7 +48,6 @@ export default async function SignUp({ searchParams }: PageProps) {
             )}
           </div>
         </form>
-        <SmtpMessage />
       </div>
     </div>
   )

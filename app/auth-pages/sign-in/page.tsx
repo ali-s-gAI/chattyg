@@ -1,18 +1,26 @@
 import { signInAction } from "@/app/actions";
-import { FormMessage, Message } from "@/components/form-message";
+import { FormMessage } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { Metadata } from "next";
 
-interface PageProps {
-  searchParams: { [key: string]: string | string[] | undefined }
+export const metadata: Metadata = {
+  title: 'Sign In',
+  description: 'Sign in to your account',
 }
 
-export default async function SignIn({ searchParams }: PageProps) {
-  const message = Array.isArray(searchParams.message) 
-    ? searchParams.message[0] 
-    : searchParams.message;
+export default function SignIn({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined }
+}) {
+  const message = searchParams?.message 
+    ? Array.isArray(searchParams.message)
+      ? searchParams.message[0]
+      : searchParams.message
+    : null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
@@ -23,7 +31,7 @@ export default async function SignIn({ searchParams }: PageProps) {
             href="/auth-pages/sign-up" 
             className="text-sm text-blue-400 hover:text-blue-300 transition-colors mb-8"
           >
-            Don&apos;t have an account? Sign up
+            Don't have an account? Sign up
           </Link>
           <div className="w-full space-y-4">
             <Label htmlFor="email">Email</Label>
