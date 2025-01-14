@@ -17,7 +17,7 @@ Search ✅
 User Presence & Status ✅
 Thread Support [need to fix UI element e.g. introduce toggle to collapse/expand thread]
 Emoji Reactions [need to edit UI to show that current user has used a reaction (press/depressed design)]
-Deploy to Vercel [ ]
+Deploy to Vercel [WIP]
 Add RAG: "ChattyG" AI assistant [ ]
 AI avatars for users (who enable option) [ ]
 
