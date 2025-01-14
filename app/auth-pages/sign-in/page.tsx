@@ -11,17 +11,14 @@ export const metadata: Metadata = {
   description: 'Sign in to your account',
 }
 
-// @ts-ignore
-export default function SignIn({
+type SearchParams = { message?: string }
+
+export default async function SignIn({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams: SearchParams
 }) {
-  const message = searchParams?.message 
-    ? Array.isArray(searchParams.message)
-      ? searchParams.message[0]
-      : searchParams.message
-    : null
+  const message = searchParams?.message || null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
@@ -32,7 +29,7 @@ export default function SignIn({
             href="/auth-pages/sign-up" 
             className="text-sm text-blue-400 hover:text-blue-300 transition-colors mb-8"
           >
-            Don't have an account? Sign up
+            Don&apos;t have an account? Sign up
           </Link>
           <div className="w-full space-y-4">
             <Label htmlFor="email">Email</Label>

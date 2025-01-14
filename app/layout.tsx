@@ -32,8 +32,7 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
+          enableSystem={true}
         >
           <NextSSRPlugin 
             routerConfig={extractRouterConfig(ourFileRouter)}

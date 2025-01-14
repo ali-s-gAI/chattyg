@@ -11,17 +11,14 @@ export const metadata: Metadata = {
   description: 'Create a new account',
 }
 
-// @ts-ignore
-export default function SignUp({
+type SearchParams = { message?: string }
+
+export default async function SignUp({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams: SearchParams
 }) {
-  const message = searchParams?.message 
-    ? Array.isArray(searchParams.message)
-      ? searchParams.message[0]
-      : searchParams.message
-    : null
+  const message = searchParams?.message || null
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
