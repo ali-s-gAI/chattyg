@@ -30,22 +30,26 @@ const inter = Inter({ subsets: ['latin'] })
 const jetbrains = JetBrains_Mono({ subsets: ['latin'] })
 
 interface MessageGroup {
-  profileId: string
-  displayName: string | null
-  avatarUrl: string | null
+  profileId: string;
+  displayName: string | null;
+  avatarUrl: string | null;
   messages: Array<{
-    id: string
-    content: string
-    created_at: string
-    thread_count: number
-    reactions: any[]
+    id: string;
+    content: string;
+    created_at: string;
+    thread_count: number;
+    reactions: Array<{
+      emoji: string;
+      count: number;
+      reacted: boolean;
+    }>;
     file_attachments?: Array<{
-      file_url: string
-      file_name: string
-      file_type: string
-      file_size: number
-    }>
-  }>
+      file_url: string;
+      file_name: string;
+      file_type: string;
+      file_size: number;
+    }>;
+  }>;
 }
 
 interface Reaction {
@@ -55,22 +59,26 @@ interface Reaction {
 }
 
 interface Message {
-  id: string
-  content: string
-  created_at: string
-  user_id: string
-  thread_count: number
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+  thread_count: number;
   profiles?: {
-    display_name: string | null
-    avatar_url: string | null
-  }
-  reactions: any[]
+    display_name: string | null;
+    avatar_url: string | null;
+  };
+  reactions: Array<{
+    emoji: string;
+    count: number;
+    reacted: boolean;
+  }>;
   file_attachments?: Array<{
-    file_url: string
-    file_name: string
-    file_type: string
-    file_size: number
-  }>
+    file_url: string;
+    file_name: string;
+    file_type: string;
+    file_size: number;
+  }>;
 }
 
 export function MessageArea({ channelId }: { channelId: string }) {
@@ -154,7 +162,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
     }
   };
 
-  const handleEmojiSelect = async (messageId: string, emoji: string) => {
+  const handleEmojiSelect = async (messageId: string, emoji: string): Promise<void> => {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) return
@@ -241,28 +249,30 @@ export function MessageArea({ channelId }: { channelId: string }) {
     if (
       lastGroup &&
       lastGroup.profileId === message.user_id &&
-      differenceInMinutes(new Date(message.created_at), 
-        new Date(lastGroup.messages[lastGroup.messages.length - 1].created_at)) < 5
+      differenceInMinutes(
+        new Date(message.created_at), 
+        new Date(lastGroup.messages[lastGroup.messages.length - 1].created_at)
+      ) < 5
     ) {
       lastGroup.messages.push({
         id: message.id,
         content: message.content,
         created_at: message.created_at,
         thread_count: message.thread_count,
-        reactions: message.reactions,
+        reactions: message.reactions || [],
         file_attachments: message.file_attachments
       })
     } else {
       groups.push({
         profileId: message.user_id,
-        displayName: message.profiles?.display_name,
-        avatarUrl: message.profiles?.avatar_url,
+        displayName: message.profiles?.display_name || null,
+        avatarUrl: message.profiles?.avatar_url || null,
         messages: [{
           id: message.id,
           content: message.content,
           created_at: message.created_at,
           thread_count: message.thread_count,
-          reactions: message.reactions,
+          reactions: message.reactions || [],
           file_attachments: message.file_attachments
         }]
       })
