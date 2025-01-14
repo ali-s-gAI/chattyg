@@ -6,11 +6,11 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { SmtpMessage } from "../smtp-message";
 
-export default function Signup({
-  searchParams,
-}: {
+interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}
+
+export default async function SignUp({ searchParams }: PageProps) {
   const message = Array.isArray(searchParams.message) 
     ? searchParams.message[0] 
     : searchParams.message;
@@ -20,32 +20,19 @@ export default function Signup({
       <div className="w-full max-w-sm mx-auto p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
         <form className="flex flex-col items-center w-full">
           <h1 className="text-2xl font-semibold mb-6 text-white">Sign up</h1>
-          <p className="text-sm text-gray-400">
-            Already have an account?{" "}
-            <Link 
-              href="/auth-pages/sign-in" 
-              className="text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              Sign in
-            </Link>
-          </p>
-          <div className="w-full space-y-4 mt-8">
+          <Link 
+            href="/auth-pages/sign-in" 
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors mb-8"
+          >
+            Already have an account? Sign in
+          </Link>
+          <div className="w-full space-y-4">
             <Label htmlFor="display_name">Display Name</Label>
-            <Input 
-              name="display_name" 
-              placeholder="How others will see you"
-              required 
-            />
+            <Input name="display_name" placeholder="How others will see you" required />
             <Label htmlFor="email">Email</Label>
             <Input name="email" placeholder="you@example.com" required />
             <Label htmlFor="password">Password</Label>
-            <Input
-              type="password"
-              name="password"
-              placeholder="Your password"
-              minLength={6}
-              required
-            />
+            <Input type="password" name="password" placeholder="••••••••" required />
             <SubmitButton formAction={signUpAction} pendingText="Signing up...">
               Sign up
             </SubmitButton>

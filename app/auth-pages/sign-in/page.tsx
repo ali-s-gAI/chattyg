@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default function SignIn({
-  searchParams,
-}: {
+interface PageProps {
   searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}
+
+export default async function SignIn({ searchParams }: PageProps) {
   const message = Array.isArray(searchParams.message) 
     ? searchParams.message[0] 
     : searchParams.message;
