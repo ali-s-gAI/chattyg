@@ -8,46 +8,72 @@ import { redirect } from "next/navigation";
 export async function signUpAction(formData: FormData) {
   'use server'
   
-  const email = formData.get('email') as string
-  const password = formData.get('password') as string
-  const displayName = formData.get('display_name') as string
+  try {
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const displayName = formData.get('display_name') as string
 
-  if (!displayName) {
-    return redirect('/auth-pages/sign-up?error=Display name is required')
+    if (!displayName) {
+      return redirect('/auth-pages/sign-up?error=Display name is required')
+    }
+    
+    const supabase = await createClient()
+    
+    // First create the auth user with detailed error logging
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+
+    console.log('Auth response:', { authData, authError })
+
+    if (authError) {
+      console.error('Detailed auth error:', JSON.stringify(authError, null, 2))
+      return redirect('/auth-pages/sign-up?error=' + encodeURIComponent(authError.message))
+    }
+
+    if (!authData.user) {
+      return redirect('/auth-pages/sign-up?error=Failed to create user')
+    }
+
+    // Then create their profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          id: authData.user.id,
+          display_name: displayName,
+        }
+      ])
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError)
+      return redirect('/auth-pages/sign-up?error=Failed to create profile')
+    }
+
+    // Create their ChattyG channel
+    const { error: channelError } = await supabase
+      .from('channels')
+      .insert([{
+        name: 'ChattyG',
+        description: 'Your personal AI assistant',
+        is_private: true,
+        created_by: authData.user.id,
+        type: 'chattyg'
+      }])
+      .select('id')
+      .single()
+
+    if (channelError) {
+      console.error('Error creating ChattyG channel:', channelError)
+      return redirect('/auth-pages/sign-up?error=Failed to create ChattyG channel')
+    }
+
+    return redirect('/auth-pages/sign-in?message=Account created successfully! Please sign in.')
+  } catch (error) {
+    console.error('Error in signUpAction:', error)
+    return redirect('/auth-pages/sign-up?error=An error occurred')
   }
-  
-  const supabase = await createClient()
-  
-  // First create the auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-  })
-
-  if (authError) {
-    return redirect('/auth-pages/sign-up?error=' + authError.message)
-  }
-
-  if (!authData.user) {
-    return redirect('/auth-pages/sign-up?error=Failed to create user')
-  }
-
-  // Then create their profile
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .insert([
-      {
-        id: authData.user.id,
-        display_name: displayName,
-      }
-    ])
-
-  if (profileError) {
-    console.error('Error creating profile:', profileError)
-    return redirect('/auth-pages/sign-up?error=Failed to create profile')
-  }
-
-  return redirect('/auth-pages/sign-in?message=Account created successfully! Please sign in.')
 }
 
 export async function signInAction(formData: FormData) {
