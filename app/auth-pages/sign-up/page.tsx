@@ -11,18 +11,17 @@ export const metadata: Metadata = {
   description: 'Create a new account',
 }
 
-interface SearchParams {
+interface Message {
   message?: string
 }
 
-interface PageProps {
-  searchParams: SearchParams
-}
-
-export default function SignUp({
+export default async function SignUp({
   searchParams,
-}: PageProps) {
-  const message = searchParams?.message || null
+}: {
+  searchParams: Promise<Message>
+}) {
+  const params = await searchParams;
+  const message = params?.message || null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">

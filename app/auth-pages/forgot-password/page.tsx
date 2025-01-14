@@ -5,17 +5,16 @@ export const metadata: Metadata = {
   description: 'Reset your password',
 }
 
-interface SearchParams {
+interface Message {
   message?: string
 }
 
-interface PageProps {
-  searchParams: SearchParams
-}
-
-export default function ForgotPassword({
+export default async function ForgotPassword({
   searchParams,
-}: PageProps) {
+}: {
+  searchParams: Promise<Message>
+}) {
+  const params = await searchParams;
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-900">
       <div className="w-full max-w-sm mx-auto p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
