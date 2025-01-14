@@ -11,13 +11,17 @@ export const metadata: Metadata = {
   description: 'Sign in to your account',
 }
 
-type SearchParams = { message?: string }
+interface SearchParams {
+  message?: string
+}
 
-export default async function SignIn({
-  searchParams,
-}: {
+interface PageProps {
   searchParams: SearchParams
-}) {
+}
+
+export default function SignIn({
+  searchParams,
+}: PageProps) {
   const message = searchParams?.message || null
 
   return (
