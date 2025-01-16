@@ -19,22 +19,20 @@ Implementation of RAG (Retrieval Augmented Generation) for ChattyG using Supabas
 2. **Initial Embedding System**
    - OpenAI package installed
    - Basic embedding generation utility created
-   - API routes for single and batch processing set up
+
 
 ## Next Steps
 
 3. **RAG Query System Implementation**
-   - Create the ChattyG AI assistant interface
+   - Create the ChattyG AI assistant interface which is similar to existing DMs or Channels (messages)
    - Implement vector similarity search
-   - Set up conversation management
-   - Add channel context selection
-   - Implement streaming responses
+   - Add channel context selection (User can select which channels to include in the RAG context (default is all channels they are member of))
 
 4. **UI/UX Development**
-   - Add ChattyG as special channel
+   - Add ChattyG as special channel that is always at the top of the channel list
    - Create channel selection interface
    - Implement chat interface
-   - Add loading states
+   - Add loading states (no need for streaming responses, but "ChattyG is typing..."). Let's eventually add this for all channels (so and so "is typing..." or "are typing...").
    - Handle errors gracefully
 
 5. **Testing & Optimization**
