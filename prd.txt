@@ -254,12 +254,12 @@ Scope (MVP): Focus solely on the core chat functionalities essential to a team m
 
 Authentication ✅
 Real-time Messaging ✅
-Channel/DM Organization ✅
+Channel/DM Organization ✅ (bug: sometimes have to click twice to first open a channel)
 File Sharing ✅
 Search ✅
-User Presence & Status ✅
-Thread Support [need to fix UI element e.g. introduce toggle to collapse/expand thread]
-Emoji Reactions [need to edit UI to show that current user has used a reaction (press/depressed design)]
+User Presence & Status ✅ (bug: sometimes have to switch channels to appear online)
+Thread Support ✅ [todo: fix UI element e.g. introduce toggle to collapse/expand thread]
+Emoji Reactions ✅ [bug: need to edit UI to show that current user has used a reaction (press/depressed design)]
 Deploy to Vercel [WIP]
 Add RAG: "ChattyG" AI assistant [ ]
 AI avatars for users (who enable option) [ ]
