@@ -2,6 +2,17 @@ import { createClient } from '@/utils/supabase/server'
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 
+interface SimilarMessage {
+  content: string;
+  similarity: number;
+}
+
+interface MatchMessagesParams {
+  query_embedding: number[];
+  match_threshold: number;
+  match_count: number;
+}
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
@@ -9,33 +20,42 @@ const openai = new OpenAI({
 export async function POST(req: Request) {
   try {
     const { question, userId, selectedChannels } = await req.json()
+    console.log('Received request:', { question, userId, selectedChannels })
+    
     const supabase = await createClient()
     
     // 1. Generate embedding for the question
+    console.log('Generating embedding...')
     const embeddingResponse = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: question,
     })
     const questionEmbedding = embeddingResponse.data[0].embedding
+    console.log('Embedding generated successfully')
 
     // 2. Search for similar messages using pgvector
-    const { data: similarMessages, error: searchError } = await supabase.rpc(
-      'match_messages',
-      {
+    console.log('Searching for similar messages...')
+    const { data: similarMessages, error: searchError } = await supabase
+      .rpc('match_messages', {
         query_embedding: questionEmbedding,
         match_threshold: 0.8,
         match_count: 5
-      }
-    )
+      } as MatchMessagesParams)
 
-    if (searchError) throw searchError
+    if (searchError) {
+      console.error('Search error:', searchError)
+      throw searchError
+    }
+    console.log('Found similar messages:', similarMessages)
 
     // 3. Format context from similar messages
-    const context = similarMessages
+    const context = (similarMessages as SimilarMessage[] || [])
       .map(msg => msg.content)
       .join('\n\n')
+    console.log('Context formatted:', context.substring(0, 100) + '...')
 
     // 4. Generate response using context
+    console.log('Generating OpenAI response...')
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -49,30 +69,37 @@ export async function POST(req: Request) {
         }
       ]
     })
+    console.log('OpenAI response generated')
 
     const answer = completion.choices[0].message.content
 
-    // 5. Store the conversation
-    const { error: insertError } = await supabase
-      .from('ai_messages')
-      .insert([
-        {
-          conversation_id: userId,
-          content: question,
-          role: 'user'
-        },
-        {
-          conversation_id: userId,
-          content: answer,
-          role: 'assistant'
-        }
-      ])
+    // Store ChattyG's response in direct_messages
+    console.log('Storing response in direct_messages...')
+    const { error: responseError } = await supabase
+      .from('direct_messages')
+      .insert({
+        sender_id: 'a7756e85-e983-464e-843b-f74e3e34decd', // ChattyG's ID
+        recipient_id: userId,
+        content: answer,
+      })
 
-    if (insertError) throw insertError
+    if (responseError) {
+      console.error('Error storing response:', responseError)
+      throw responseError
+    }
+    console.log('Response stored successfully')
 
     return NextResponse.json({ answer })
   } catch (error) {
     console.error('ChattyG error:', error)
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        cause: error.cause
+      })
+    }
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'An error occurred' },
       { status: 500 }
