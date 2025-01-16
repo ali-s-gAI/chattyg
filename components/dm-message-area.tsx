@@ -16,6 +16,8 @@ import { Inter } from 'next/font/google'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const CHATTYG_ID = 'a7756e85-e983-464e-843b-f74e3e34decd'
+
 interface MessageGroup {
   senderId: string;
   displayName: string | null;
@@ -31,6 +33,7 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { messages, loading, sendDM } = useDirectMessages(targetUserId);
   const [messageInput, setMessageInput] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -46,10 +49,13 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
     if (!messageInput.trim()) return;
 
     try {
+      setIsGenerating(targetUserId === CHATTYG_ID);
       await sendDM(messageInput);
       setMessageInput("");
     } catch (error) {
       console.error("Failed to send message:", error);
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -75,8 +81,8 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
     } else {
       groups.push({
         senderId: message.sender_id,
-        displayName: message.sender_profile?.display_name,
-        avatarUrl: message.sender_profile?.avatar_url,
+        displayName: message.sender_profile?.display_name ?? null,
+        avatarUrl: message.sender_profile?.avatar_url ?? null,
         messages: [{
           id: message.id,
           content: message.content,
@@ -126,7 +132,7 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  
+
                   <div className="space-y-1">
                     {group.messages.map(message => (
                       <div key={message.id}>
@@ -149,6 +155,22 @@ export function DmMessageArea({ targetUserId }: { targetUserId: string }) {
               </div>
             </div>
           ))
+        )}
+        {isGenerating && targetUserId === CHATTYG_ID && (
+          <div className="flex items-start gap-3 px-2 py-1">
+            <Avatar className="h-10 w-10 mt-1">
+              <AvatarImage src="" /> {/* Add ChattyG's avatar URL here if available */}
+              <AvatarFallback className="bg-gray-700 text-gray-300">C</AvatarFallback>
+            </Avatar>
+            <div className="flex items-center gap-2">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce"></div>
+              </div>
+              <span className="text-sm text-gray-400">ChattyG is thinking...</span>
+            </div>
+          </div>
         )}
         <div ref={messagesEndRef} />
       </div>
