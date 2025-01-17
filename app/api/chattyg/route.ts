@@ -17,26 +17,27 @@ interface MatchMessagesParams {
 
 const CHATTYG_ID = 'a7756e85-e983-464e-843b-f74e3e34decd';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
-
-// Create a service role client that bypasses RLS
-const serviceClient = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
-
 export async function POST(req: Request) {
   try {
     console.log('\n🔵 CHATTYG API START 🔵');
     console.log('----------------------------------------');
+
+    // Initialize clients
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    })
+
+    // Create a service role client that bypasses RLS
+    const serviceClient = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
     const { question, userId, selectedChannels } = await req.json()
     console.log('📥 Received request:', { 
@@ -197,51 +198,3 @@ export async function POST(req: Request) {
     )
   }
 }
-
-
-
-
-/*
-previously removed code for channel filtering
-    // Debug: Check join between messages and embeddings
-    const { data: joinData, error: joinError } = await serviceClient
-      .from('messages')
-      .select(`
-        id,
-        content,
-        embeddings!inner (
-          embedding
-        )
-      `)
-      .limit(1);
-
-    console.log('Debug - Messages with embeddings:', {
-      found: joinData && joinData.length > 0,
-      error: joinError?.message
-    });
-
-    console.log('Search parameters:', {
-      match_count: 5,
-      match_threshold: 0.3,
-      member_id: userId
-    })
-
-    // Use service client for match_messages RPC call without channel filtering
-    const { data: similarMessages, error: searchError } = await serviceClient
-      .rpc('match_messages', {
-        match_count: 5,
-        match_threshold: 0.3,
-        member_id: userId,
-        query_embedding: questionEmbedding
-      })
-
-    if (searchError) {
-      console.error('❌ Search error:', {
-        code: searchError.code,
-        message: searchError.message,
-        details: searchError.details,
-        hint: searchError.hint
-      })
-      throw searchError
-    }
-*/
