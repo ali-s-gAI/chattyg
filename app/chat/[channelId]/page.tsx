@@ -8,7 +8,7 @@ export default async function ChannelPage({
 }: {
   params: { channelId: string }
 }) {
-  const channelId = params.channelId;
+  const { channelId } = params;
   const supabase = await createClient()
   
   // Fetch channel data

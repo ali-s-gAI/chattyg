@@ -1,85 +1,60 @@
-# ChattyG Implementation Progress
+# Recent Progress
+- Fixed embedding generation and storage
+- Removed channel membership checks from RAG to allow all users to access messages
+- Lowered similarity threshold to 0.3 for better matches
+- Added detailed debug logging in ChattyG API
+- Fixed cookie handling in Supabase client
+- Removed theme toggle to resolve hydration issues
+- Set app to dark mode only for demo
 
-## Recent Progress (2024-03-21)
-1. ✅ Core Features Implemented
-   - Basic chat functionality with real-time updates
-   - File uploads and attachments
-   - Thread support
-   - Emoji reactions
-   - User presence tracking
+# Current Issues
+1. Build Issues:
+   - Type error in `app/chat/[channelId]/page.tsx` with Next.js generated types
+   - Need to clean `.next` and `node_modules/.cache` before deploying
 
-2. ✅ ChattyG AI Integration
-   - OpenAI integration set up
-   - Embedding generation working
-   - Vector similarity search implemented (needs tuning)
-   - Direct message interface with ChattyG
+2. RAG Functionality:
+   - Embeddings are being generated and stored (confirmed by debug logs)
+   - `match_messages` SQL function needs verification
+   - Similarity search and contextual response only working for User1? Something to do with the channel membership check?
 
-3. ✅ UI/UX Improvements
-   - Updated app title and metadata
-   - ChattyG always appears at top of user list
-   - Real-time status indicators for users
-   - Loading states for AI responses
+3. UI/UX:
+   - Sign-in/sign-up forms alignment issues
+   - Theme-related hydration warnings resolved by forcing dark mode
 
-## Current Issues
-1. 🔄 RAG Functionality
-   - Similarity search returning no results
-   - Need to verify embedding storage
-   - May need to adjust similarity threshold
-   - Consider adding debug mode for RAG
+# Next Steps
+1. Pre-deployment:
+   - Clean build folders and regenerate
+   - Verify RAG functionality with fresh embeddings
+   - Test user authentication flow
 
-2. 🔄 UI Enhancements Needed
-   - Add onboarding tooltips/guidance for new users
-   - Improve thread UI (collapse/expand)
-   - Better visual feedback for emoji reactions
-   - Consider adding typing indicators
-   - Add channel selection for ChattyG context
+2. Future Improvements:
+   - Implement proper channel membership for public channels
+   - Add user guidance and onboarding
+   - Consider @ mention AI avatar auto-response feature
 
-## Next Steps (By Priority)
-
-### Immediate (P0)
-1. Fix RAG Implementation
-   - Tune similarity search parameters
-
-2. UI Polish
-   - Add user guidance tooltips
-   - Improve ChattyG visual distinction
-   - Fix double-click channel issue
-   - Improve thread UI
-
-### Short-term (P1)
-1. New Features
-   - Consider @ mention AI avatar responses
-   - Add channel context selection for ChattyG
-   - Implement message streaming
-
-2. Deployment
-   - Set up Vercel deployment
-   - Configure environment variables
-   - Test in production environment
-   - Set up monitoring
-
-### Future Enhancements (P2)
-1. Performance
-   - Optimize similarity search
-   - Add caching for frequent queries
-   - Batch process embeddings
-
-2. Features
-   - Message summarization
-   - Channel analytics
-   - AI Avatar responses
-
-## Important Notes
+# Important Notes
 - ChattyG UUID: a7756e85-e983-464e-843b-f74e3e34decd
-- OpenAI Model: gpt-4o-mini
-- Embedding Model: text-embedding-3-small
-- All messages stored in appropriate tables
-- Embeddings being generated but similarity search is early stage
+- Using OpenAI GPT-4 Mini for responses
+- Using text-embedding-3-small for embeddings
+- Current match threshold: 0.3
 
-## Pre-Deploy Checklist
-1. [ ] Complete UI polish
-2. [ ] Add user guidance
-3. [ ] Decision on @ mention feature
-4. [ ] Fix new user sign-up
-5. [ ] Final testing
-6. [ ] Deploy to Vercel
+# Database Schema
+## Core Tables
+- messages
+- embeddings
+- channels
+- channel_members
+- direct_messages
+
+## Supporting Tables
+- profiles
+- auth.users
+
+# Pre-Deploy Checklist
+- [ ] Clean build (.next and cache)
+- [ ] Verify RAG functionality
+- [ ] Test authentication flow
+- [ ] Check all API endpoints
+- [ ] Verify database connections
+- [ ] Test message embedding generation
+- [ ] Final UI review
