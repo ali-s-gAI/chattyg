@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     const { data: similarMessages, error: searchError } = await supabase
       .rpc('match_messages', {
         match_count: 5,
-        match_threshold: 0.5, // Lowered from 0.8 to 0.5 (50% similarity)
+        match_threshold: 0.3,
         member_id: userId,
         query_embedding: questionEmbedding
       })
