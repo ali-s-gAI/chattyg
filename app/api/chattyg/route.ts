@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server'
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 interface SimilarMessage {
   content: string;
@@ -20,6 +21,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
+// Create a service role client that bypasses RLS
+const serviceClient = createServiceClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
 export async function POST(req: Request) {
   try {
     console.log('\n🔵 CHATTYG API START 🔵');
@@ -32,8 +45,6 @@ export async function POST(req: Request) {
       selectedChannels,
       questionLength: question.length
     })
-    
-    const supabase = await createClient()
     
     // 1. Generate embedding for the question
     console.log('\n🔄 Step 1: Generating embedding');
@@ -50,24 +61,42 @@ export async function POST(req: Request) {
     // 2. Search for similar messages using pgvector
     console.log('\n🔄 Step 2: Searching for similar messages');
     
-    // Debug: Check if we have any embeddings
-    const { data: embeddingCount, error: countError } = await supabase
+    // Debug: Check if we have any embeddings using service client
+    const { data: embeddingData, error: countError } = await serviceClient
       .from('embeddings')
-      .select('id', { count: 'exact' });
+      .select('embedding');
     
     console.log('Debug - Embeddings in database:', {
-      count: embeddingCount?.length || 0,
-      error: countError?.message
+      count: embeddingData?.length || 0,
+      error: countError?.message,
+      sampleEmbedding: embeddingData?.[0]?.embedding ? 'exists' : 'missing'
+    });
+
+    // Debug: Check join between messages and embeddings
+    const { data: joinData, error: joinError } = await serviceClient
+      .from('messages')
+      .select(`
+        id,
+        content,
+        embeddings!inner (
+          embedding
+        )
+      `)
+      .limit(1);
+
+    console.log('Debug - Messages with embeddings:', {
+      found: joinData?.length > 0,
+      error: joinError?.message
     });
 
     console.log('Search parameters:', {
       match_count: 5,
-      match_threshold: 0.8,
+      match_threshold: 0.3,
       member_id: userId
     })
 
-    // Lower the threshold to be less strict
-    const { data: similarMessages, error: searchError } = await supabase
+    // Use service client for match_messages RPC call
+    const { data: similarMessages, error: searchError } = await serviceClient
       .rpc('match_messages', {
         match_count: 5,
         match_threshold: 0.3,
@@ -113,7 +142,7 @@ export async function POST(req: Request) {
           role: "system",
           content: `You are ChattyG, a helpful AI assistant in a team chat platform. 
           Use the following context from previous messages to inform your responses, 
-          but don't explicitly reference that you're using context unless asked.
+          and, when it seems appropriate, reference the context in your response, using quotations if the user seems to want them.
           Context: ${context}`
         },
         { role: "user", content: question }
@@ -128,7 +157,7 @@ export async function POST(req: Request) {
 
     // 5. Store the response in direct_messages
     console.log('\n🔄 Step 5: Storing response');
-    const { error: responseError } = await supabase
+    const { error: responseError } = await serviceClient
       .from('direct_messages')
       .insert({
         sender_id: CHATTYG_ID,
