@@ -85,7 +85,7 @@ export async function POST(req: Request) {
       .limit(1);
 
     console.log('Debug - Messages with embeddings:', {
-      found: joinData?.length > 0,
+      found: joinData && joinData.length > 0,
       error: joinError?.message
     });
 
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       member_id: userId
     })
 
-    // Use service client for match_messages RPC call
+    // Use service client for match_messages RPC call without channel filtering
     const { data: similarMessages, error: searchError } = await serviceClient
       .rpc('match_messages', {
         match_count: 5,
@@ -196,4 +196,52 @@ export async function POST(req: Request) {
       { status: 500 }
     )
   }
-} 
+}
+
+
+
+
+/*
+previously removed code for channel filtering
+    // Debug: Check join between messages and embeddings
+    const { data: joinData, error: joinError } = await serviceClient
+      .from('messages')
+      .select(`
+        id,
+        content,
+        embeddings!inner (
+          embedding
+        )
+      `)
+      .limit(1);
+
+    console.log('Debug - Messages with embeddings:', {
+      found: joinData && joinData.length > 0,
+      error: joinError?.message
+    });
+
+    console.log('Search parameters:', {
+      match_count: 5,
+      match_threshold: 0.3,
+      member_id: userId
+    })
+
+    // Use service client for match_messages RPC call without channel filtering
+    const { data: similarMessages, error: searchError } = await serviceClient
+      .rpc('match_messages', {
+        match_count: 5,
+        match_threshold: 0.3,
+        member_id: userId,
+        query_embedding: questionEmbedding
+      })
+
+    if (searchError) {
+      console.error('❌ Search error:', {
+        code: searchError.code,
+        message: searchError.message,
+        details: searchError.details,
+        hint: searchError.hint
+      })
+      throw searchError
+    }
+*/
