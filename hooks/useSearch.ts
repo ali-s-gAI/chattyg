@@ -16,6 +16,37 @@ interface SearchResult {
   url?: string
 }
 
+interface Profile {
+  id: string
+  display_name: string
+  email?: string
+}
+
+interface Message {
+  id: string
+  content: string
+  channel_id: string
+  created_at: string
+  profiles: {
+    id: string
+    display_name: string
+  }
+}
+
+interface Channel {
+  id: string
+  name: string
+  description?: string
+}
+
+interface FileAttachment {
+  id: string
+  file_name: string
+  message_id: string
+  channel_id: string
+  created_at: string
+}
+
 export function useSearch() {
   const [searchResults, setSearchResults] = useState<{
     messages: SearchResult[]
@@ -47,7 +78,7 @@ export function useSearch() {
             content,
             channel_id,
             created_at,
-            profiles (
+            profiles:user_id (
               id,
               display_name
             )
@@ -84,15 +115,18 @@ export function useSearch() {
       ])
 
       setSearchResults({
-        messages: messages.data?.map(msg => ({
-          type: 'message',
-          id: msg.id,
-          title: msg.profiles.display_name,
-          subtitle: msg.content,
-          channelId: msg.channel_id,
-          messageId: msg.id,
-          timestamp: msg.created_at
-        })) || [],
+        messages: messages.data?.map(msg => {
+          const message = msg as unknown as Message
+          return {
+            type: 'message',
+            id: message.id,
+            title: message.profiles?.display_name || 'Unknown User',
+            subtitle: message.content,
+            channelId: message.channel_id,
+            messageId: message.id,
+            timestamp: message.created_at
+          }
+        }) || [],
         channels: channels.data?.map(channel => ({
           type: 'channel',
           id: channel.id,

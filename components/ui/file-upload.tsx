@@ -1,7 +1,6 @@
 "use client";
 
 import { UploadButton } from "@/utils/uploadthing";
-import { Paperclip } from "lucide-react";
 
 interface FileUploadProps {
   onUploadComplete: (url: string, type: string, name: string, size: number) => void;
@@ -21,11 +20,9 @@ export function FileUpload({ onUploadComplete, onUploadError }: FileUploadProps)
       }}
       onUploadError={onUploadError}
       appearance={{
-        button: "p-2 rounded-full hover:bg-gray-700/50 transition-colors",
+        button: "p-2 rounded-full hover:bg-gray-700/50 transition-colors text-gray-400 hover:text-white",
         allowedContent: "hidden"
       }}
-    >
-      <Paperclip className="h-5 w-5" />
-    </UploadButton>
+    />
   );
 } 

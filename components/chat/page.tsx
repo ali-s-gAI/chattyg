@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 import { MessageArea } from '@/components/message-area'
 import { TopBar } from '@/components/top-bar'
 
@@ -8,6 +8,7 @@ const ChatPage: React.FC = () => {
   const [currentChannelId, setCurrentChannelId] = useState<string | null>(null)
 
   const checkMembership = async () => {
+    const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session || !currentChannelId) return false
 
@@ -28,6 +29,7 @@ const ChatPage: React.FC = () => {
   }
 
   const handleJoinChannel = async () => {
+    const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session || !currentChannelId) return
 
@@ -55,7 +57,7 @@ const ChatPage: React.FC = () => {
           {isCurrentUserMember ? (
             <>
               <div className="h-14 border-b border-gray-700 flex items-center px-4">
-                <TopBar channel={channels.find(c => c.id === currentChannelId)} />
+                <TopBar />
               </div>
               <div className="flex-1 overflow-y-auto">
                 <MessageArea channelId={currentChannelId} />
@@ -74,7 +76,9 @@ const ChatPage: React.FC = () => {
           )}
         </>
       ) : (
-        // ... existing "no channel selected" state
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-gray-400">Select a channel to start chatting</p>
+        </div>
       )}
     </div>
   )
