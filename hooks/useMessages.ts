@@ -161,20 +161,71 @@ export function useMessages(channelId: string) {
   }, [channelId])
 
   const sendMessage = async (content: string) => {
+    console.log('🚨🚨🚨 SENDING MESSAGE STARTED 🚨🚨🚨');
     try {
       await updateUserLastSeen()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) throw new Error('Not authenticated')
 
-      const { error } = await supabase
+      // Send the message
+      console.log('📝 Inserting message into database...');
+      const { data: message, error: messageError } = await supabase
         .from('messages')
         .insert([{
           content,
           channel_id: channelId,
           user_id: session.user.id
         }])
+        .select()
+        .single()
 
-      if (error) throw error
+      if (messageError) throw messageError
+      console.log('✅ Message inserted:', message);
+
+      // Generate and store embedding via API route
+      try {
+        console.log('🎯 Starting embedding generation...');
+        const apiUrl = '/api/generate-embedding';
+        console.log('API URL:', window.location.origin + apiUrl);
+        
+        const payload = {
+          messageId: message.id,
+          content: message.content
+        };
+        console.log('Payload:', payload);
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        console.log('API response received:', {
+          status: response.status,
+          ok: response.ok
+        });
+
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (!response.ok) {
+          console.error('🔴 Error generating embedding:', data);
+        } else {
+          console.log('✅ Embedding generated successfully');
+        }
+      } catch (error) {
+        console.error('🔴 Error calling embedding API:', error);
+        if (error instanceof Error) {
+          console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          });
+        }
+      }
+
     } catch (error) {
       console.error('Error sending message:', error)
       throw error

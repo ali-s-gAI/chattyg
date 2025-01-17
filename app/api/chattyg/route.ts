@@ -11,7 +11,10 @@ interface MatchMessagesParams {
   query_embedding: number[];
   match_threshold: number;
   match_count: number;
+  channel_ids?: string[] | null;
 }
+
+const CHATTYG_ID = 'a7756e85-e983-464e-843b-f74e3e34decd';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -38,9 +41,10 @@ export async function POST(req: Request) {
     const { data: similarMessages, error: searchError } = await supabase
       .rpc('match_messages', {
         query_embedding: questionEmbedding,
+        user_id: userId,
         match_threshold: 0.8,
         match_count: 5
-      } as MatchMessagesParams)
+      })
 
     if (searchError) {
       console.error('Search error:', searchError)
@@ -54,42 +58,38 @@ export async function POST(req: Request) {
       .join('\n\n')
     console.log('Context formatted:', context.substring(0, 100) + '...')
 
-    // 4. Generate response using context
-    console.log('Generating OpenAI response...')
+    // 4. Generate response using OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
-          content: `You are ChattyG, a whimsical and fun AI assistant for a workplace chat app advertised as no-frills and casual, in a workplace that prioritizes workers not being overburdened or overly-occupied or distracted at or by work. Use the following context to address the user's message in this DM conversation. but don't mention that you're using any context. If the context doesn't help, note that what is being asked may not have been discussed in the workspace, but respond as ChattyG:\n\n${context}`
+          content: `You are ChattyG, a helpful AI assistant in a team chat platform. 
+          Use the following context from previous messages to inform your responses, 
+          but don't explicitly reference that you're using context unless asked.
+          Context: ${context}`
         },
-        {
-          role: "user",
-          content: question
-        }
+        { role: "user", content: question }
       ]
     })
-    console.log('OpenAI response generated')
 
     const answer = completion.choices[0].message.content
 
-    // Store ChattyG's response in direct_messages
-    console.log('Storing response in direct_messages...')
+    // 5. Store the response in direct_messages
     const { error: responseError } = await supabase
       .from('direct_messages')
       .insert({
-        sender_id: 'a7756e85-e983-464e-843b-f74e3e34decd', // ChattyG's ID
+        sender_id: CHATTYG_ID,
         recipient_id: userId,
-        content: answer,
+        content: answer
       })
 
     if (responseError) {
       console.error('Error storing response:', responseError)
       throw responseError
     }
-    console.log('Response stored successfully')
 
-    return NextResponse.json({ answer })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('ChattyG error:', error)
     if (error instanceof Error) {

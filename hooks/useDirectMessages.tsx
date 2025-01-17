@@ -22,6 +22,7 @@ interface DirectMessage {
 export function useDirectMessages(targetUserId: string) {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -96,6 +97,7 @@ export function useDirectMessages(targetUserId: string) {
       // If the recipient is ChattyG, get AI response
       if (targetUserId === CHATTYG_ID) {
         try {
+          setIsGenerating(true);
           const response = await fetch('/api/chattyg', {
             method: 'POST',
             headers: {
@@ -111,20 +113,10 @@ export function useDirectMessages(targetUserId: string) {
             throw new Error('Failed to get ChattyG response');
           }
 
-          const { answer } = await response.json();
-
-          // Insert ChattyG's response
-          const { error: responseError } = await supabase
-            .from("direct_messages")
-            .insert([
-              {
-                sender_id: CHATTYG_ID,
-                recipient_id: session.user.id,
-                content: answer,
-              },
-            ]);
-
-          if (responseError) throw responseError;
+          const data = await response.json();
+          if (data.error) {
+            throw new Error(data.error);
+          }
         } catch (error) {
           console.error('Error getting ChattyG response:', error);
           // Insert error message
@@ -137,6 +129,8 @@ export function useDirectMessages(targetUserId: string) {
                 content: "I apologize, but I'm having trouble processing your request right now. Please try again later.",
               },
             ]);
+        } finally {
+          setIsGenerating(false);
         }
       }
     } catch (error) {
