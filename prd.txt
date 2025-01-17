@@ -261,7 +261,7 @@ User Presence & Status ✅ (bug: sometimes have to switch channels to appear onl
 Thread Support ✅ [todo: fix UI element e.g. introduce toggle to collapse/expand thread]
 Emoji Reactions ✅ [bug: need to edit UI to show that current user has used a reaction (press/depressed design)]
 Deploy to Vercel [WIP]
-Add RAG: "ChattyG" AI assistant [ ]
+Add RAG: "ChattyG" AI assistant [WIP (responses not generating from OpenAI)]
 AI avatars for users (who enable option) [ ]
 
 2. Objectives & Goals
