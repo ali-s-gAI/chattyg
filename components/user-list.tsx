@@ -37,7 +37,16 @@ export function UserList() {
         .select('id, display_name, last_seen, avatar_url')
         .order('display_name')
 
-      setUsers(data || [])
+        if (data) {
+          // Separate ChattyG from other users
+          const chattyG = data.find(user => user.id === CHATTYG_ID)
+          const otherUsers = data.filter(user => user.id !== CHATTYG_ID)
+          
+          // Set users with ChattyG first, followed by alphabetically sorted others
+          setUsers(chattyG ? [chattyG, ...otherUsers] : otherUsers)
+        } else {
+          setUsers([])
+        }
     }
 
     fetchUsers()
