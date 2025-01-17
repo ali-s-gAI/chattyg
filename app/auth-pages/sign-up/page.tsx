@@ -24,23 +24,45 @@ export default async function SignUp({
   const message = params?.message || null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-900">
-      <div className="w-full max-w-sm mx-auto p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
-        <form className="flex flex-col items-center w-full">
-          <h1 className="text-2xl font-semibold mb-6 text-white">Sign up</h1>
+    <div className="flex h-screen w-screen items-center justify-center bg-gray-900">
+      <div className="w-[400px] p-8 bg-gray-800/50 rounded-xl shadow-xl border border-gray-700">
+        <form className="flex flex-col items-center space-y-6">
+          <h1 className="text-2xl font-semibold text-white">Sign up</h1>
           <Link 
             href="/auth-pages/sign-in" 
-            className="text-sm text-blue-400 hover:text-blue-300 transition-colors mb-8"
+            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
           >
             Already have an account? Sign in
           </Link>
           <div className="w-full space-y-4">
-            <Label htmlFor="display_name">Display Name</Label>
-            <Input name="display_name" placeholder="How others will see you" required />
-            <Label htmlFor="email">Email</Label>
-            <Input name="email" placeholder="you@example.com" required />
-            <Label htmlFor="password">Password</Label>
-            <Input type="password" name="password" placeholder="••••••••" required />
+            <div>
+              <Label className="block text-center mb-2" htmlFor="display_name">Display Name</Label>
+              <Input 
+                name="display_name" 
+                placeholder="How others will see you" 
+                required 
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label className="block text-center mb-2" htmlFor="email">Email</Label>
+              <Input 
+                name="email" 
+                placeholder="you@example.com" 
+                required 
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Label className="block text-center mb-2" htmlFor="password">Password</Label>
+              <Input 
+                type="password" 
+                name="password" 
+                placeholder="••••••••" 
+                required 
+                className="w-full"
+              />
+            </div>
             <SubmitButton formAction={signUpAction} pendingText="Signing up...">
               Sign up
             </SubmitButton>

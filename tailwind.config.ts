@@ -1,14 +1,13 @@
-import type { Config } from "tailwindcss";
+import { Config } from "tailwindcss";
 
-const config: Config = {
+const config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -18,12 +17,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-dm-sans)'],
+      },
       colors: {
-        'chatty-blue': {
-          light: '#8BB7E5',
-          dark: '#1A1F2E',
-        },
-        'chatty-orange': '#FF6B2B',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -56,10 +53,6 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        'chat': {
-          bg: "hsl(var(--chat-background))",
-          fg: "hsl(var(--chat-foreground))",
         },
       },
       borderRadius: {
@@ -112,10 +105,6 @@ const config: Config = {
             },
           },
         },
-      },
-      fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        poppins: ['Poppins', 'sans-serif'],
       },
     },
   },
