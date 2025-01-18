@@ -111,50 +111,8 @@ export function MessageArea({ channelId }: { channelId: string }) {
     if (!messageInput.trim() && !attachment) return;
 
     try {
-      console.log("Submitting with attachment:", attachment); // Debug log
-
-      // Send the message first
-      const { data: message, error: messageError } = await supabase
-        .from('messages')
-        .insert([{
-          content: messageInput,
-          channel_id: channelId,
-          user_id: (await supabase.auth.getUser()).data.user?.id
-        }])
-        .select()
-        .single();
-
-      if (messageError) throw messageError;
-
-      // If there's an attachment, create the file attachment record
-      if (attachment) {
-        console.log("Creating file attachment with:", { // Debug log
-          message_id: message.id,
-          file_url: attachment.url,
-          file_name: attachment.name,
-          file_type: attachment.type,
-          file_size: attachment.size,
-          created_by: (await supabase.auth.getUser()).data.user?.id
-        });
-
-        const { data: fileAttachment, error: attachmentError } = await supabase
-          .from('file_attachments')
-          .insert([{
-            message_id: message.id,
-            file_url: attachment.url,
-            file_name: attachment.name,
-            file_type: attachment.type,
-            file_size: attachment.size,
-            created_by: (await supabase.auth.getUser()).data.user?.id
-          }])
-          .select()
-          .single();
-
-        console.log("File attachment result:", { fileAttachment, attachmentError }); // Debug log
-
-        if (attachmentError) throw attachmentError;
-      }
-
+      console.log("🚨🚨🚨 SUBMITTING MESSAGE 🚨🚨🚨");
+      await sendMessage(messageInput);
       setMessageInput("");
       setAttachment(null);
     } catch (error) {
@@ -406,7 +364,7 @@ export function MessageArea({ channelId }: { channelId: string }) {
 
                         {/* Display reactions */}
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {console.log('Rendering reactions for message:', message.id, message.reactions)}
+                          {/* {console.log('Rendering reactions for message:', message.id, message.reactions)} */}
                           {message.reactions?.map((reaction) => (
                             <button
                               key={reaction.emoji}

@@ -1,6 +1,249 @@
-CURRENT TO-DO:
+This is some background on the app:
+# ChattyG Project Structure
+
+## Core Routes
+- / → Redirects to /chat if authenticated, otherwise to /auth-pages/sign-in
+- /chat → Main chat interface (default view when no channel selected)
+- /chat/[channelId] → Specific channel view
+- /chat/dm/[userId] → Direct message conversations (placeholder for future implementation)
+- /auth-pages/sign-in → Authentication routes
+- /auth-pages/sign-up
+- /settings/account → User settings
+
+## Key Components Structure
+- components/
+  - message-area.tsx → Main chat message display and input
+  - top-bar.tsx → Channel header with search
+  - sidebar.tsx → Channel list navigation
+  - user-list.tsx → Online users display
+  - thread-section.tsx → Message thread support
+  - auth-layout.tsx → Authentication wrapper
+  - ui/ → shadcn/ui components
+
+## Main Features
+1. Real-time Chat
+   - Channel-based messaging
+   - Message grouping by user/time
+   - Emoji reactions
+   - Markdown support
+   - Thread support
+
+2. Authentication
+   - Email/password auth via Supabase
+   - Protected routes
+   - User presence tracking
+
+3. User Interface
+   - Three-column layout (channels, messages, users)
+   - Dark theme
+   - Responsive design
+
+## Tech Stack
+- Next.js 13+ (App Router)
+- Supabase (Backend & Real-time)
+- TypeScript
+- shadcn/ui + Tailwind CSS
+- React Server Components where possible
+
+## Database Tables (Supabase)
+- profiles → User profiles
+- channels → Chat channels
+- messages → Chat messages
+- message_reactions → Emoji reactions
+- thread_messages → Threaded replies
+
+## Key Features
+- Real-time updates using Supabase subscriptions
+- User presence tracking (online/offline status)
+- Message reactions and threading
+- Channel management (creation, joining)
+- Markdown message formatting
+# ChattyG Database Structure (Supabase)
+
+## Tables Overview
+
+### channels
+Primary chat organization structure
+- id (uuid, PK)
+- name (varchar) - Channel name
+- description (text) - Channel description
+- created_at (timestamptz)
+- is_private (bool) - Privacy flag
+- created_by (uuid, FK → auth.users.id) - Channel creator
+
+### profiles
+User profile information
+- id (uuid, PK, FK → auth.users.id)
+- display_name (text)
+- avatar_url (text)
+- updated_at (timestamptz)
+- created_at (timestamptz)
+
+### channel_members
+Manages channel membership
+- id (uuid, PK)
+- channel_id (uuid, FK → channels.id)
+- user_id (uuid, FK → auth.users.id)
+- role (text) - Member role in channel
+- created_at (timestamptz)
+
+### messages
+Main message storage
+- id (uuid, PK)
+- channel_id (uuid, FK → channels.id)
+- user_id (uuid, FK → auth.users.id)
+- content (text)
+- created_at (timestamptz)
+- parent_id (uuid, nullable) - For message threading
+- ts (tsvector) - For text search
+- thread_count (int4) - Number of replies
+
+### thread_messages
+Threaded conversations
+- id (uuid, PK)
+- channel_id (uuid, FK → channels.id)
+- parent_message_id (uuid, FK → messages.id)
+- user_id (uuid, FK → auth.users.id)
+- content (text)
+- created_at (timestamptz)
+- updated_at (timestamptz)
+- is_edited (bool)
+- reactions (jsonb) - Stored reactions data
+
+### message_reactions
+Emoji reactions to messages
+- id (uuid, PK)
+- message_id (uuid, FK → messages.id)
+- user_id (uuid, FK → auth.users.id)
+- emoji (text)
+- created_at (timestamptz)
+
+### file_attachments
+- id (uuid, PK)
+- message_id (uuid, FK → messages.id)
+- file_url (text)
+- file_name (text)
+- file_type (text)
+- file_size (int4)
+- created_by (uuid, FK → auth.users.id)
+- created_at (timestamptz)
+
+## Key Relationships
+
+1. User-Related
+   - Each profile is linked to an auth.users entry
+   - Users can be members of multiple channels
+   - Users can create messages and reactions
+
+2. Channel-Related
+   - Channels contain messages and members
+   - Channels track their creator
+   - Channels can be public or private
+
+3. Message-Related
+   - Messages belong to a channel and user
+   - Messages can have parent messages (threading)
+   - Messages can have multiple reactions
+   - Messages track their thread count
+
+
+## Notable Features
+
+1. Real-time Support
+   - All tables support Supabase real-time subscriptions
+   - Timestamp tracking for real-time updates
+
+2. Search Capability
+   - Messages include ts (tsvector) for full-text search
+   - Channels and users are searchable by name
+
+3. Soft Features
+   - Message threading support
+   - Reaction tracking
+   - User presence tracking via profiles.updated_at
+   - Channel privacy controls
+
+4. Data Integrity
+   - Foreign key constraints ensure referential integrity
+   - Timestamps for audit trails
+   - Proper UUID usage for IDs
+
+ALSO TO-DO:
 - proper error handling for disallowed file types (show message: "Sorry, file type not allowed.")
 - proper error handling for file upload errors (show message: "Sorry, file upload failed.")
+
+RAG Features:
+
+LATEST:
+2. Database Structure:
+   - `messages` table for regular messages
+   - `channels` table including the ChattyG channel
+   - `ai_conversations` and `ai_messages` tables for AI interactions
+   - `embeddings` table with pgvector enabled for similarity search
+
+3. Latest Addition:
+   - Created Next.js API route at `app/api/chattyg/route.ts` for RAG implementation
+   - Using OpenAI for embeddings and chat completion
+   - Using pgvector in Supabase for similarity search
+
+## Current Goal
+Implement RAG functionality where:
+1. Users can chat in the ChattyG channel
+2. ChattyG responds using context from:
+   - All channels (default)
+   - Selected channels only (to be implemented)
+3. Messages appear in the ChattyG channel like regular messages
+
+## Technical Requirements
+1. Need to implement vector similarity search
+2. Need to integrate with existing channel message system
+3. Need to handle embeddings for new messages
+4. Need to display AI responses in the ChattyG channel
+
+## Next Steps
+Need help implementing:
+1. The vector similarity search function in Supabase
+2. Integration with existing channel components
+3. Message embedding generation system
+4. ChattyG channel interface
+
+graph LR
+    A[User Question] --> B[Create Embedding]
+    B --> C[Search Similar Messages]
+    C --> D[Format Context]
+    D --> E[Generate AI Response]
+
+PREVIOUS:
+
+**RAG WoOK,rkflow with Supabase:**
+1. **Storage & Embeddings:**
+   - Messages stored in Supabase database
+   - Embeddings stored in Supabase using pgvector
+   - No need for Pinecone since pgvector handles vector similarity
+
+2. **When a user sends a message to ChattyG:**
+   ```mermaid
+   sequenceDiagram
+      User->>ChattyG: Asks question
+      ChattyG->>OpenAI: Generate embedding for question
+      ChattyG->>Supabase: Search similar contexts using pgvector
+      Supabase->>ChattyG: Return relevant messages
+      ChattyG->>OpenAI: Generate response with context
+      ChattyG->>User: Return contextual answer
+   ```
+
+3. **Supabase Edge Functions:**
+   - Serverless functions that run on Supabase's edge network
+   - We'll use them to:
+     1. Generate embeddings (OpenAI API call)
+     2. Handle RAG logic
+     3. Generate final responses
+
+Let's start by:
+1. Setting up pgvector (from previous SQL)
+2. Creating a Supabase Edge Function
+3. Testing with some sample data
+
 
 PRD
 1. Overview
@@ -11,14 +254,14 @@ Scope (MVP): Focus solely on the core chat functionalities essential to a team m
 
 Authentication ✅
 Real-time Messaging ✅
-Channel/DM Organization ✅
+Channel/DM Organization ✅ (bug: sometimes have to click twice to first open a channel)
 File Sharing ✅
 Search ✅
-User Presence & Status ✅
-Thread Support [need to fix UI element e.g. introduce toggle to collapse/expand thread]
-Emoji Reactions [need to edit UI to show that current user has used a reaction (press/depressed design)]
+User Presence & Status ✅ (bug: sometimes have to switch channels to appear online)
+Thread Support ✅ [todo: fix UI element e.g. introduce toggle to collapse/expand thread]
+Emoji Reactions ✅ [bug: need to edit UI to show that current user has used a reaction (press/depressed design)]
 Deploy to Vercel [WIP]
-Add RAG: "ChattyG" AI assistant [ ]
+Add RAG: "ChattyG" AI assistant [WIP (responses not generating from OpenAI)]
 AI avatars for users (who enable option) [ ]
 
 2. Objectives & Goals
@@ -183,179 +426,3 @@ Aggregate multiple reactions of the same type.
 
 AI Features: After the MVP is stable, add AI-based functionalities like smart message suggestions, channel summarizations, or Q&A chatbots.
 Mobile App: Expand to mobile devices or optimize the web version for smaller screens.
-
-(RECENT UPDATE)
-This is some background on the app:
-# ChattyG Project Structure
-
-## Core Routes
-- / → Redirects to /chat if authenticated, otherwise to /auth-pages/sign-in
-- /chat → Main chat interface (default view when no channel selected)
-- /chat/[channelId] → Specific channel view
-- /chat/dm/[userId] → Direct message conversations (placeholder for future implementation)
-- /auth-pages/sign-in → Authentication routes
-- /auth-pages/sign-up
-- /settings/account → User settings
-
-## Key Components Structure
-- components/
-  - message-area.tsx → Main chat message display and input
-  - top-bar.tsx → Channel header with search
-  - sidebar.tsx → Channel list navigation
-  - user-list.tsx → Online users display
-  - thread-section.tsx → Message thread support
-  - auth-layout.tsx → Authentication wrapper
-  - ui/ → shadcn/ui components
-
-## Main Features
-1. Real-time Chat
-   - Channel-based messaging
-   - Message grouping by user/time
-   - Emoji reactions
-   - Markdown support
-   - Thread support
-
-2. Authentication
-   - Email/password auth via Supabase
-   - Protected routes
-   - User presence tracking
-
-3. User Interface
-   - Three-column layout (channels, messages, users)
-   - Dark theme
-   - Responsive design
-
-## Tech Stack
-- Next.js 13+ (App Router)
-- Supabase (Backend & Real-time)
-- TypeScript
-- shadcn/ui + Tailwind CSS
-- React Server Components where possible
-
-## Database Tables (Supabase)
-- profiles → User profiles
-- channels → Chat channels
-- messages → Chat messages
-- message_reactions → Emoji reactions
-- thread_messages → Threaded replies
-
-## Key Features
-- Real-time updates using Supabase subscriptions
-- User presence tracking (online/offline status)
-- Message reactions and threading
-- Channel management (creation, joining)
-- Markdown message formatting
-# ChattyG Database Structure (Supabase)
-
-## Tables Overview
-
-### channels
-Primary chat organization structure
-- id (uuid, PK)
-- name (varchar) - Channel name
-- description (text) - Channel description
-- created_at (timestamptz)
-- is_private (bool) - Privacy flag
-- created_by (uuid, FK → auth.users.id) - Channel creator
-
-### profiles
-User profile information
-- id (uuid, PK, FK → auth.users.id)
-- display_name (text)
-- avatar_url (text)
-- updated_at (timestamptz)
-- created_at (timestamptz)
-
-### channel_members
-Manages channel membership
-- id (uuid, PK)
-- channel_id (uuid, FK → channels.id)
-- user_id (uuid, FK → auth.users.id)
-- role (text) - Member role in channel
-- created_at (timestamptz)
-
-### messages
-Main message storage
-- id (uuid, PK)
-- channel_id (uuid, FK → channels.id)
-- user_id (uuid, FK → auth.users.id)
-- content (text)
-- created_at (timestamptz)
-- parent_id (uuid, nullable) - For message threading
-- ts (tsvector) - For text search
-- thread_count (int4) - Number of replies
-
-### thread_messages
-Threaded conversations
-- id (uuid, PK)
-- channel_id (uuid, FK → channels.id)
-- parent_message_id (uuid, FK → messages.id)
-- user_id (uuid, FK → auth.users.id)
-- content (text)
-- created_at (timestamptz)
-- updated_at (timestamptz)
-- is_edited (bool)
-- reactions (jsonb) - Stored reactions data
-
-### message_reactions
-Emoji reactions to messages
-- id (uuid, PK)
-- message_id (uuid, FK → messages.id)
-- user_id (uuid, FK → auth.users.id)
-- emoji (text)
-- created_at (timestamptz)
-
-### file_attachments
-- id (uuid, PK)
-- message_id (uuid, FK → messages.id)
-- file_url (text)
-- file_name (text)
-- file_type (text)
-- file_size (int4)
-- created_by (uuid, FK → auth.users.id)
-- created_at (timestamptz)
-
-## Key Relationships
-
-1. User-Related
-   - Each profile is linked to an auth.users entry
-   - Users can be members of multiple channels
-   - Users can create messages and reactions
-
-2. Channel-Related
-   - Channels contain messages and members
-   - Channels track their creator
-   - Channels can be public or private
-
-3. Message-Related
-   - Messages belong to a channel and user
-   - Messages can have parent messages (threading)
-   - Messages can have multiple reactions
-   - Messages track their thread count
-
-
-
-## Immediate Priority:
-- Complete file attachment display in messages
-- Implement basic search functionality
-
-## Notable Features
-
-1. Real-time Support
-   - All tables support Supabase real-time subscriptions
-   - Timestamp tracking for real-time updates
-
-2. Search Capability
-   - Messages include ts (tsvector) for full-text search
-   - Channels and users are searchable by name
-
-3. Soft Features
-   - Message threading support
-   - Reaction tracking
-   - User presence tracking via profiles.updated_at
-   - Channel privacy controls
-
-4. Data Integrity
-   - Foreign key constraints ensure referential integrity
-   - Timestamps for audit trails
-   - Proper UUID usage for IDs

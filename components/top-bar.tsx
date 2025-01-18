@@ -15,6 +15,18 @@ import {
 import { format } from 'date-fns'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
+type SearchResult = {
+  id: string
+  title: string
+  subtitle: string
+  timestamp?: string
+  url?: string
+  channelId?: string
+  messageId?: string
+}
+
+type SearchCategory = 'messages' | 'channels' | 'users' | 'attachments'
+
 type TopBarProps = {
   channel?: {
     id: string
@@ -36,7 +48,7 @@ export function TopBar({ channel }: TopBarProps) {
     setIsDialogOpen(true)
   }
 
-  const handleResultClick = (result: any) => {
+  const handleResultClick = (result: SearchResult) => {
     setIsDialogOpen(false)
     if (result.url) {
       router.push(result.url)
@@ -52,6 +64,8 @@ export function TopBar({ channel }: TopBarProps) {
   const clearSearch = () => {
     setSearchQuery('')
   }
+
+  const searchCategories: SearchCategory[] = ['messages', 'channels', 'users', 'attachments']
 
   return (
     <>
@@ -126,10 +140,10 @@ export function TopBar({ channel }: TopBarProps) {
               </TabsTrigger>
             </TabsList>
 
-            {['messages', 'channels', 'users', 'attachments'].map((category) => (
+            {searchCategories.map((category) => (
               <TabsContent key={category} value={category}>
                 <div className="max-h-[400px] overflow-y-auto space-y-2">
-                  {searchResults[category].map((result) => (
+                  {searchResults[category].map((result: SearchResult) => (
                     <button
                       key={result.id}
                       onClick={() => handleResultClick(result)}

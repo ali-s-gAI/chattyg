@@ -3,12 +3,12 @@ import { TopBar } from '@/components/top-bar'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 
-export default async function ChannelPage({
-  params,
-}: {
-  params: { channelId: string }
-}) {
-  const channelId = params.channelId;
+interface PageProps {
+  params: Promise<{ channelId: string }>
+}
+
+export default async function ChannelPage({ params }: PageProps) {
+  const { channelId } = await params;
   const supabase = await createClient()
   
   // Fetch channel data

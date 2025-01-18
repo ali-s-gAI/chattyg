@@ -27,7 +27,7 @@ export default async function ChatLayout({
       <Header />
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-64 flex-shrink-0 border-r border-gray-800">
-          <Sidebar channels={channels} />
+          <Sidebar channels={channels ?? []} />
         </nav>
         <main className="flex-1 flex overflow-hidden">
           {children}

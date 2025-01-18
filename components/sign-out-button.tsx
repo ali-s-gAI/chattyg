@@ -4,10 +4,15 @@ import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const supabase = createClient()
 
-export function SignOutButton() {
+interface SignOutButtonProps {
+  className?: string
+}
+
+export function SignOutButton({ className }: SignOutButtonProps) {
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -31,7 +36,10 @@ export function SignOutButton() {
       onClick={handleSignOut}
       variant="ghost"
       size="sm"
-      className="w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800"
+      className={cn(
+        "w-full justify-start text-gray-400 hover:text-white hover:bg-gray-800",
+        className
+      )}
     >
       <LogOut className="mr-2 h-4 w-4" />
       Sign Out

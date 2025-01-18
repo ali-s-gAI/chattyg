@@ -5,6 +5,8 @@ import { createClient } from "@/utils/supabase/client";
 
 const supabase = createClient();
 
+const CHATTYG_ID = 'a7756e85-e983-464e-843b-f74e3e34decd';
+
 interface DirectMessage {
   id: string;
   sender_id: string;
@@ -20,6 +22,7 @@ interface DirectMessage {
 export function useDirectMessages(targetUserId: string) {
   const [messages, setMessages] = useState<DirectMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -78,6 +81,7 @@ export function useDirectMessages(targetUserId: string) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Not authenticated');
 
+      // Send user's message
       const { error } = await supabase
         .from("direct_messages")
         .insert([
@@ -89,6 +93,46 @@ export function useDirectMessages(targetUserId: string) {
         ]);
 
       if (error) throw error;
+
+      // If the recipient is ChattyG, get AI response
+      if (targetUserId === CHATTYG_ID) {
+        try {
+          setIsGenerating(true);
+          const response = await fetch('/api/chattyg', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              question: content,
+              userId: session.user.id 
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to get ChattyG response');
+          }
+
+          const data = await response.json();
+          if (data.error) {
+            throw new Error(data.error);
+          }
+        } catch (error) {
+          console.error('Error getting ChattyG response:', error);
+          // Insert error message
+          await supabase
+            .from("direct_messages")
+            .insert([
+              {
+                sender_id: CHATTYG_ID,
+                recipient_id: session.user.id,
+                content: "I apologize, but I'm having trouble processing your request right now. Please try again later.",
+              },
+            ]);
+        } finally {
+          setIsGenerating(false);
+        }
+      }
     } catch (error) {
       console.error('Error sending DM:', error);
       throw error;
